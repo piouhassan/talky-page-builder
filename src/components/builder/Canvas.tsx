@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { XCircle } from "lucide-react";
+import { XCircle, Copy, ArrowUp, ArrowDown } from "lucide-react";
 
 interface CanvasProps {
   children?: React.ReactNode;
@@ -81,6 +81,45 @@ const Canvas: React.FC<CanvasProps> = ({ children, viewportSize = 'desktop', sel
       window.dispatchEvent(event);
     }
   };
+
+  // Duplicate a component
+  const handleDuplicate = (e: React.MouseEvent, id: string, type: string) => {
+    e.stopPropagation();
+    const componentToDuplicate = placedComponents.find(comp => comp.id === id);
+    if (componentToDuplicate) {
+      const newId = `component-${Date.now()}`;
+      const index = placedComponents.findIndex(comp => comp.id === id);
+      const newComponents = [...placedComponents];
+      newComponents.splice(index + 1, 0, { id: newId, type });
+      setPlacedComponents(newComponents);
+    }
+  };
+
+  // Move component up
+  const handleMoveUp = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    const index = placedComponents.findIndex(comp => comp.id === id);
+    if (index > 0) {
+      const newComponents = [...placedComponents];
+      const temp = newComponents[index - 1];
+      newComponents[index - 1] = newComponents[index];
+      newComponents[index] = temp;
+      setPlacedComponents(newComponents);
+    }
+  };
+
+  // Move component down
+  const handleMoveDown = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    const index = placedComponents.findIndex(comp => comp.id === id);
+    if (index < placedComponents.length - 1) {
+      const newComponents = [...placedComponents];
+      const temp = newComponents[index + 1];
+      newComponents[index + 1] = newComponents[index];
+      newComponents[index] = temp;
+      setPlacedComponents(newComponents);
+    }
+  };
   
   return (
     <div 
@@ -127,21 +166,62 @@ const Canvas: React.FC<CanvasProps> = ({ children, viewportSize = 'desktop', sel
                   </div>
                 )}
                 
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  className="absolute top-2 right-2 bg-white border-gray-200 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const updatedComponents = placedComponents.filter(comp => comp.id !== id);
-                    setPlacedComponents(updatedComponents);
-                    if (selectedComponentId === id) {
-                      setSelectedComponentId(null);
-                    }
-                  }}
-                >
-                  <XCircle size={16} className="text-gray-500" />
-                </Button>
+                {/* Component action buttons */}
+                <div className="absolute top-2 right-2 flex space-x-1 bg-white border border-gray-200 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => handleDuplicate(e, id, type)}
+                    title="Dupliquer"
+                  >
+                    <Copy size={16} className="text-gray-500" />
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => handleMoveUp(e, id)}
+                    disabled={placedComponents.indexOf(placedComponents.find(comp => comp.id === id)!) === 0}
+                    title="Déplacer vers le haut"
+                  >
+                    <ArrowUp size={16} className="text-gray-500" />
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => handleMoveDown(e, id)}
+                    disabled={placedComponents.indexOf(placedComponents.find(comp => comp.id === id)!) === placedComponents.length - 1}
+                    title="Déplacer vers le bas"
+                  >
+                    <ArrowDown size={16} className="text-gray-500" />
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const updatedComponents = placedComponents.filter(comp => comp.id !== id);
+                      setPlacedComponents(updatedComponents);
+                      if (selectedComponentId === id) {
+                        setSelectedComponentId(null);
+                        // Notify property panel
+                        const event = new CustomEvent('component-selected', { 
+                          detail: { id: null, type: null }
+                        });
+                        window.dispatchEvent(event);
+                      }
+                    }}
+                    title="Supprimer"
+                  >
+                    <XCircle size={16} className="text-gray-500" />
+                  </Button>
+                </div>
               </div>
             ))
           )}
