@@ -1,18 +1,30 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { XCircle, Copy, ArrowUp, ArrowDown } from "lucide-react";
+import { ComponentData } from './BuilderLayout';
 
 interface CanvasProps {
   children?: React.ReactNode;
   viewportSize?: 'desktop' | 'tablet' | 'mobile';
   selectedWidth?: string;
+  components: ComponentData[];
+  setComponents: React.Dispatch<React.SetStateAction<ComponentData[]>>;
+  selectedComponentId: string | null;
+  addComponent: (componentData: ComponentData) => void;
 }
 
-const Canvas: React.FC<CanvasProps> = ({ children, viewportSize = 'desktop', selectedWidth = "1440" }) => {
+const Canvas: React.FC<CanvasProps> = ({ 
+  children, 
+  viewportSize = 'desktop', 
+  selectedWidth = "1440",
+  components,
+  setComponents,
+  selectedComponentId,
+  addComponent
+}) => {
   const [dropzoneActive, setDropzoneActive] = useState(false);
-  const [placedComponents, setPlacedComponents] = useState<{id: string, type: string}[]>([]);
-  const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   
   // Handle drag over event
@@ -29,17 +41,67 @@ const Canvas: React.FC<CanvasProps> = ({ children, viewportSize = 'desktop', sel
     e.preventDefault();
     setDropzoneActive(false);
     
-    // In a real implementation, we would analyze the transferred data to identify
-    // the dropped component. For this example, we're simulating dropping a "Hero" component.
+    // Get the component type from dataTransfer
+    const componentType = e.dataTransfer.getData('componentType') || "Hero";
+    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
+    
+    // Create a new component with default content based on type
     const newId = `component-${Date.now()}`;
-    setPlacedComponents([...placedComponents, { id: newId, type: "Hero" }]);
+    const newComponent: ComponentData = {
+      id: newId,
+      type: componentType,
+    };
+    
+    // Add default content based on component type
+    if (componentType === "Hero") {
+      newComponent.content = {
+        title: "Restez connecté avec vos amis et votre famille",
+        subtitle: "Restez connecté avec vos proches, où que vous soyez et à tout moment. Créez des groupes, partagez des photos, et gardez le contact facilement.",
+        buttonText: "Télécharger l'application",
+        badge: "NOUVEAU"
+      };
+      newComponent.style = {
+        backgroundColor: "#E9F0FF",
+        padding: "12",
+        textAlign: "center"
+      };
+    } else if (componentType === "Features") {
+      newComponent.content = {
+        title: "Nos fonctionnalités",
+        subtitle: "Découvrez tout ce que notre application peut faire pour vous",
+      };
+      newComponent.style = {
+        backgroundColor: "#FFFFFF",
+        padding: "12",
+        textAlign: "center"
+      };
+    } else if (componentType === "Paragraphe") {
+      newComponent.content = {
+        title: "Titre du paragraphe",
+        subtitle: "Voici le contenu du paragraphe. Vous pouvez modifier ce texte dans le panneau des propriétés à droite.",
+      };
+      newComponent.style = {
+        backgroundColor: "#FFFFFF",
+        padding: "6",
+        textAlign: "left"
+      };
+    } else if (componentType === "Bouton") {
+      newComponent.content = {
+        buttonText: "Cliquez ici",
+      };
+      newComponent.style = {
+        backgroundColor: "#FFFFFF",
+        padding: "6",
+        textAlign: "center"
+      };
+    }
+    
+    // Add the new component
+    addComponent(newComponent);
     
     // Select the newly added component
-    setSelectedComponentId(newId);
-    
-    // Dispatch a custom event to notify the property panel
     const event = new CustomEvent('component-selected', { 
-      detail: { id: newId, type: "Hero" }
+      detail: { id: newId, type: componentType }
     });
     window.dispatchEvent(event);
   };
@@ -60,7 +122,6 @@ const Canvas: React.FC<CanvasProps> = ({ children, viewportSize = 'desktop', sel
   // Select a component on click
   const handleComponentClick = (e: React.MouseEvent, id: string, type: string) => {
     e.stopPropagation();
-    setSelectedComponentId(id);
     
     // Dispatch a custom event to notify the property panel
     const event = new CustomEvent('component-selected', { 
@@ -72,8 +133,6 @@ const Canvas: React.FC<CanvasProps> = ({ children, viewportSize = 'desktop', sel
   // Deselect components when clicking on the canvas background
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (e.target === canvasRef.current) {
-      setSelectedComponentId(null);
-      
       // Dispatch a custom event to notify the property panel
       const event = new CustomEvent('component-selected', { 
         detail: { id: null, type: null }
@@ -83,41 +142,152 @@ const Canvas: React.FC<CanvasProps> = ({ children, viewportSize = 'desktop', sel
   };
 
   // Duplicate a component
-  const handleDuplicate = (e: React.MouseEvent, id: string, type: string) => {
+  const handleDuplicate = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    const componentToDuplicate = placedComponents.find(comp => comp.id === id);
+    const componentToDuplicate = components.find(comp => comp.id === id);
     if (componentToDuplicate) {
       const newId = `component-${Date.now()}`;
-      const index = placedComponents.findIndex(comp => comp.id === id);
-      const newComponents = [...placedComponents];
-      newComponents.splice(index + 1, 0, { id: newId, type });
-      setPlacedComponents(newComponents);
+      const newComponent = {
+        ...JSON.parse(JSON.stringify(componentToDuplicate)),
+        id: newId
+      };
+      
+      // Insert after the original component
+      const index = components.findIndex(comp => comp.id === id);
+      const newComponents = [...components];
+      newComponents.splice(index + 1, 0, newComponent);
+      setComponents(newComponents);
     }
   };
 
   // Move component up
   const handleMoveUp = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    const index = placedComponents.findIndex(comp => comp.id === id);
+    const index = components.findIndex(comp => comp.id === id);
     if (index > 0) {
-      const newComponents = [...placedComponents];
+      const newComponents = [...components];
       const temp = newComponents[index - 1];
       newComponents[index - 1] = newComponents[index];
       newComponents[index] = temp;
-      setPlacedComponents(newComponents);
+      setComponents(newComponents);
     }
   };
 
   // Move component down
   const handleMoveDown = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    const index = placedComponents.findIndex(comp => comp.id === id);
-    if (index < placedComponents.length - 1) {
-      const newComponents = [...placedComponents];
+    const index = components.findIndex(comp => comp.id === id);
+    if (index < components.length - 1) {
+      const newComponents = [...components];
       const temp = newComponents[index + 1];
       newComponents[index + 1] = newComponents[index];
       newComponents[index] = temp;
-      setPlacedComponents(newComponents);
+      setComponents(newComponents);
+    }
+  };
+
+  // Render component based on type
+  const renderComponent = (component: ComponentData) => {
+    const { id, type, content, style } = component;
+    
+    switch(type) {
+      case "Hero":
+        return (
+          <div 
+            className={`bg-${style?.backgroundColor || 'builder-light-blue'} p-${style?.padding || '12'} text-${style?.textAlign || 'center'}`}
+          >
+            <div className="max-w-3xl mx-auto">
+              {content?.badge && (
+                <span className="inline-block py-1 px-3 rounded-full bg-white text-builder-blue text-xs font-medium mb-4">
+                  {content.badge}
+                </span>
+              )}
+              {content?.title && (
+                <h1 className="text-4xl font-bold text-gray-900 mb-6">{content.title}</h1>
+              )}
+              {content?.subtitle && (
+                <p className="text-lg text-gray-600 mb-8">{content.subtitle}</p>
+              )}
+              {content?.buttonText && (
+                <Button className="bg-builder-blue hover:bg-builder-dark-blue text-white px-6 py-2 rounded-md">
+                  {content.buttonText}
+                </Button>
+              )}
+            </div>
+          </div>
+        );
+      
+      case "Features":
+        return (
+          <div className={`bg-${style?.backgroundColor || 'white'} p-${style?.padding || '12'} text-${style?.textAlign || 'center'}`}>
+            <div className="max-w-5xl mx-auto">
+              {content?.title && (
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">{content.title}</h2>
+              )}
+              {content?.subtitle && (
+                <p className="text-lg text-gray-600 mb-12 max-w-3xl mx-auto">{content.subtitle}</p>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="bg-white p-6 rounded-lg shadow-sm">
+                  <div className="w-12 h-12 bg-builder-light-blue rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M5 3v4M3 5h4M6 17v4M4 19h4M13 3l4 4M17 5l-4 4M14 17l3 3M17 17l-3 3" stroke="#4361EE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2 text-center">Simple d'utilisation</h3>
+                  <p className="text-gray-600 text-center">Notre application est conçue pour être facile à utiliser dès le premier jour.</p>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-sm">
+                  <div className="w-12 h-12 bg-builder-light-blue rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2v6M12 22v-6M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M2 12h6M22 12h-6M4.93 19.07l4.24-4.24M14.83 9.17l4.24-4.24" stroke="#4361EE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2 text-center">Rapide et fiable</h3>
+                  <p className="text-gray-600 text-center">Performance optimisée pour vous offrir la meilleure expérience possible.</p>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-sm">
+                  <div className="w-12 h-12 bg-builder-light-blue rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="#4361EE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M9 12l2 2 4-4" stroke="#4361EE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2 text-center">Sécurisé</h3>
+                  <p className="text-gray-600 text-center">Vos données sont protégées avec les meilleures pratiques de sécurité.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case "Paragraphe":
+        return (
+          <div className={`bg-${style?.backgroundColor || 'white'} p-${style?.padding || '6'} text-${style?.textAlign || 'left'}`}>
+            {content?.title && (
+              <h3 className="text-2xl font-bold mb-4">{content.title}</h3>
+            )}
+            {content?.subtitle && (
+              <p className="text-gray-700">{content.subtitle}</p>
+            )}
+          </div>
+        );
+      
+      case "Bouton":
+        return (
+          <div className={`bg-${style?.backgroundColor || 'white'} p-${style?.padding || '6'} text-${style?.textAlign || 'center'}`}>
+            <Button className="bg-builder-blue hover:bg-builder-dark-blue text-white px-6 py-2 rounded-md">
+              {content?.buttonText || "Cliquez ici"}
+            </Button>
+          </div>
+        );
+      
+      default:
+        return (
+          <div className="bg-gray-100 p-6 text-center">
+            <p className="text-gray-500">Composant non reconnu: {type}</p>
+          </div>
+        );
     }
   };
   
@@ -141,30 +311,19 @@ const Canvas: React.FC<CanvasProps> = ({ children, viewportSize = 'desktop', sel
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          {placedComponents.length === 0 ? (
+          {components.length === 0 ? (
             <div className="flex items-center justify-center h-full text-gray-400 flex-col">
               <p className="mb-4 text-lg">Glissez et déposez des composants ici</p>
               <p className="text-sm">Ou choisissez un modèle pour commencer</p>
             </div>
           ) : (
-            placedComponents.map(({ id, type }) => (
+            components.map((component) => (
               <div 
-                key={id} 
-                className={`relative border-2 ${selectedComponentId === id ? 'border-builder-blue' : 'border-transparent'} hover:border-builder-blue group`}
-                onClick={(e) => handleComponentClick(e, id, type)}
+                key={component.id} 
+                className={`relative border-2 ${selectedComponentId === component.id ? 'border-builder-blue' : 'border-transparent'} hover:border-builder-blue group`}
+                onClick={(e) => handleComponentClick(e, component.id, component.type)}
               >
-                {type === "Hero" && (
-                  <div className="bg-builder-light-blue p-12 text-center">
-                    <div className="max-w-3xl mx-auto">
-                      <span className="inline-block py-1 px-3 rounded-full bg-white text-builder-blue text-xs font-medium mb-4">NOUVEAU</span>
-                      <h1 className="text-4xl font-bold text-gray-900 mb-6">Restez connecté avec vos amis et votre famille</h1>
-                      <p className="text-lg text-gray-600 mb-8">Restez connecté avec vos proches, où que vous soyez et à tout moment. Créez des groupes, partagez des photos, et gardez le contact facilement.</p>
-                      <Button className="bg-builder-blue hover:bg-builder-dark-blue text-white px-6 py-2 rounded-md">
-                        Télécharger l'application
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                {renderComponent(component)}
                 
                 {/* Component action buttons */}
                 <div className="absolute top-2 right-2 flex space-x-1 bg-white border border-gray-200 rounded opacity-0 group-hover:opacity-100 transition-opacity">
@@ -172,7 +331,7 @@ const Canvas: React.FC<CanvasProps> = ({ children, viewportSize = 'desktop', sel
                     variant="ghost" 
                     size="icon"
                     className="h-8 w-8"
-                    onClick={(e) => handleDuplicate(e, id, type)}
+                    onClick={(e) => handleDuplicate(e, component.id)}
                     title="Dupliquer"
                   >
                     <Copy size={16} className="text-gray-500" />
@@ -182,8 +341,8 @@ const Canvas: React.FC<CanvasProps> = ({ children, viewportSize = 'desktop', sel
                     variant="ghost" 
                     size="icon"
                     className="h-8 w-8"
-                    onClick={(e) => handleMoveUp(e, id)}
-                    disabled={placedComponents.indexOf(placedComponents.find(comp => comp.id === id)!) === 0}
+                    onClick={(e) => handleMoveUp(e, component.id)}
+                    disabled={components.indexOf(component) === 0}
                     title="Déplacer vers le haut"
                   >
                     <ArrowUp size={16} className="text-gray-500" />
@@ -193,8 +352,8 @@ const Canvas: React.FC<CanvasProps> = ({ children, viewportSize = 'desktop', sel
                     variant="ghost" 
                     size="icon"
                     className="h-8 w-8"
-                    onClick={(e) => handleMoveDown(e, id)}
-                    disabled={placedComponents.indexOf(placedComponents.find(comp => comp.id === id)!) === placedComponents.length - 1}
+                    onClick={(e) => handleMoveDown(e, component.id)}
+                    disabled={components.indexOf(component) === components.length - 1}
                     title="Déplacer vers le bas"
                   >
                     <ArrowDown size={16} className="text-gray-500" />
@@ -206,10 +365,8 @@ const Canvas: React.FC<CanvasProps> = ({ children, viewportSize = 'desktop', sel
                     className="h-8 w-8"
                     onClick={(e) => {
                       e.stopPropagation();
-                      const updatedComponents = placedComponents.filter(comp => comp.id !== id);
-                      setPlacedComponents(updatedComponents);
-                      if (selectedComponentId === id) {
-                        setSelectedComponentId(null);
+                      setComponents(components.filter(comp => comp.id !== component.id));
+                      if (selectedComponentId === component.id) {
                         // Notify property panel
                         const event = new CustomEvent('component-selected', { 
                           detail: { id: null, type: null }
