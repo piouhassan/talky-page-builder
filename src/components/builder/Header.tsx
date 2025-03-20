@@ -6,7 +6,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Undo, Redo, Smartphone, Tablet, Monitor, Save, Share } from "lucide-react";
 import { Link } from 'react-router-dom';
 
-const Header = () => {
+interface HeaderProps {
+  onViewportChange?: (viewport: 'desktop' | 'tablet' | 'mobile') => void;
+  onWidthChange?: (width: string) => void;
+  viewportSize?: 'desktop' | 'tablet' | 'mobile';
+  selectedWidth?: string;
+}
+
+const Header: React.FC<HeaderProps> = ({ 
+  onViewportChange, 
+  onWidthChange,
+  viewportSize = 'desktop',
+  selectedWidth = "1440"
+}) => {
   return (
     <header className="border-b border-gray-200 bg-white h-16 flex items-center px-4 justify-between sticky top-0 z-50 shadow-sm">
       <div className="flex items-center space-x-4">
@@ -43,20 +55,38 @@ const Header = () => {
         <div className="h-6 w-px bg-gray-200 mx-2"></div>
         
         <div className="flex bg-gray-100 p-1 rounded-md">
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={`h-8 w-8 rounded-md ${viewportSize === 'mobile' ? 'bg-white shadow-sm' : ''}`}
+            onClick={() => onViewportChange && onViewportChange('mobile')}
+          >
             <Smartphone size={16} />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={`h-8 w-8 rounded-md ${viewportSize === 'tablet' ? 'bg-white shadow-sm' : ''}`}
+            onClick={() => onViewportChange && onViewportChange('tablet')}
+          >
             <Tablet size={16} />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 bg-white rounded-md shadow-sm">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={`h-8 w-8 rounded-md ${viewportSize === 'desktop' ? 'bg-white shadow-sm' : ''}`}
+            onClick={() => onViewportChange && onViewportChange('desktop')}
+          >
             <Monitor size={16} />
           </Button>
         </div>
         
         <div className="h-6 w-px bg-gray-200 mx-2"></div>
         
-        <Select defaultValue="1440">
+        <Select 
+          value={selectedWidth} 
+          onValueChange={(value) => onWidthChange && onWidthChange(value)}
+        >
           <SelectTrigger className="w-24 h-9">
             <SelectValue placeholder="Largeur" />
           </SelectTrigger>

@@ -7,14 +7,33 @@ import PropertyPanel from './PropertyPanel';
 
 const BuilderLayout = () => {
   const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
+  const [viewportSize, setViewportSize] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [selectedWidth, setSelectedWidth] = useState<string>("1440");
+
+  const handleViewportChange = (size: 'desktop' | 'tablet' | 'mobile') => {
+    setViewportSize(size);
+  };
+
+  const handleWidthChange = (width: string) => {
+    setSelectedWidth(width);
+  };
+
+  const handleComponentSelect = (componentType: string) => {
+    setSelectedComponent(componentType);
+  };
 
   return (
     <div className="flex flex-col h-screen bg-white">
-      <Header />
+      <Header 
+        onViewportChange={handleViewportChange}
+        onWidthChange={handleWidthChange}
+        viewportSize={viewportSize}
+        selectedWidth={selectedWidth}
+      />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <Canvas />
-        <PropertyPanel />
+        <Sidebar onComponentSelect={handleComponentSelect} />
+        <Canvas viewportSize={viewportSize} selectedWidth={selectedWidth} />
+        <PropertyPanel selectedComponent={selectedComponent} />
       </div>
     </div>
   );

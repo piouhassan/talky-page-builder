@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, ChevronDown, Smartphone, Tablet, Monitor } from "lucide-react";
+import { Search, ChevronDown } from "lucide-react";
 import { cn } from '@/lib/utils';
 
 interface SectionProps {
@@ -138,16 +138,181 @@ const ImageIcon = () => (
   </svg>
 );
 
-const Sidebar = () => {
-  const [activeTab, setActiveTab] = useState("layouts");
-  const [showHeroVariants, setShowHeroVariants] = useState(false);
-  const [currentViewport, setCurrentViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+interface VariantListProps {
+  title: string;
+  variants: Array<{
+    title: string;
+    description: string;
+    image: string;
+  }>;
+  onBack: () => void;
+  onSelect: (variant: string) => void;
+}
 
-  const handleViewportChange = (viewport: 'desktop' | 'tablet' | 'mobile') => {
-    setCurrentViewport(viewport);
-    // Envoyer un événement au Canvas pour changer la taille d'affichage
-    const event = new CustomEvent('viewport-change', { detail: { viewport } });
-    window.dispatchEvent(event);
+const VariantList: React.FC<VariantListProps> = ({ title, variants, onBack, onSelect }) => {
+  return (
+    <>
+      <div className="px-3 mb-3">
+        <Button variant="ghost" size="sm" onClick={onBack} className="text-xs">
+          ← Retour
+        </Button>
+        <h3 className="font-medium text-sm px-2">{title}</h3>
+      </div>
+      <div className="grid grid-cols-1 gap-3 px-3">
+        {variants.map((variant, idx) => (
+          <div 
+            key={idx}
+            className="border border-gray-200 rounded-md overflow-hidden hover:border-builder-blue transition-colors cursor-pointer"
+            onClick={() => onSelect(`${title} - ${variant.title}`)}
+          >
+            <div className="bg-builder-light-blue p-3 text-center">
+              <h4 className="text-sm font-bold">{variant.title}</h4>
+              <p className="text-[10px] text-gray-600">{variant.description}</p>
+            </div>
+            <img src={variant.image} alt={variant.title} className="w-full h-auto" />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+};
+
+interface SidebarProps {
+  onComponentSelect?: (componentType: string) => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
+  const [activeTab, setActiveTab] = useState("layouts");
+  const [showVariants, setShowVariants] = useState<null | {
+    type: string;
+    variants: Array<{
+      title: string;
+      description: string;
+      image: string;
+    }>
+  }>(null);
+
+  const handleComponentSelect = (componentType: string) => {
+    if (onComponentSelect) {
+      onComponentSelect(componentType);
+    }
+  };
+
+  const heroVariants = [
+    {
+      title: "Hero Centré",
+      description: "Titre + Texte + CTA",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Hero Image Droite",
+      description: "Titre + Texte + CTA + Image",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Hero Image Gauche",
+      description: "Image + Titre + Texte + CTA",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Hero Fond Image",
+      description: "Image de fond + Titre + CTA",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    }
+  ];
+
+  const footerVariants = [
+    {
+      title: "Footer Simple",
+      description: "Logo + Liens + Copyright",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Footer Multi-colonnes",
+      description: "Logo + Menus + Réseaux sociaux",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Footer avec Newsletter",
+      description: "Liens + Inscription newsletter",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    }
+  ];
+
+  const navVariants = [
+    {
+      title: "Navbar Simple",
+      description: "Logo + Menu horizontal",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Navbar avec Recherche",
+      description: "Logo + Menu + Recherche",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Navbar avec CTA",
+      description: "Logo + Menu + Bouton",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    }
+  ];
+
+  const featureVariants = [
+    {
+      title: "Features en Grille",
+      description: "Icônes + Titre + Description",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Features avec Image",
+      description: "Images + Titre + Description",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Features Alternées",
+      description: "Image + Texte alternés",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    }
+  ];
+
+  const cardVariants = [
+    {
+      title: "Cartes Simples",
+      description: "Titre + Texte + Lien",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Cartes avec Image",
+      description: "Image + Titre + Texte",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Cartes Testimonials",
+      description: "Avatar + Nom + Témoignage",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    }
+  ];
+
+  const showVariantsFor = (type: string) => {
+    switch(type) {
+      case "Hero":
+        setShowVariants({ type, variants: heroVariants });
+        break;
+      case "Footer":
+        setShowVariants({ type, variants: footerVariants });
+        break;
+      case "Navbar":
+        setShowVariants({ type, variants: navVariants });
+        break;
+      case "Features":
+        setShowVariants({ type, variants: featureVariants });
+        break;
+      case "Cards":
+        setShowVariants({ type, variants: cardVariants });
+        break;
+      default:
+        handleComponentSelect(type);
+    }
   };
 
   return (
@@ -179,86 +344,32 @@ const Sidebar = () => {
             className="pl-9 h-9 bg-gray-50"
           />
         </div>
-
-        <div className="flex items-center justify-center space-x-2 mb-4 border-t border-b border-gray-200 py-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className={cn("h-8 w-8", currentViewport === 'desktop' ? "bg-gray-100" : "")}
-            onClick={() => handleViewportChange('desktop')}
-          >
-            <Monitor size={18} />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className={cn("h-8 w-8", currentViewport === 'tablet' ? "bg-gray-100" : "")}
-            onClick={() => handleViewportChange('tablet')}
-          >
-            <Tablet size={18} />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className={cn("h-8 w-8", currentViewport === 'mobile' ? "bg-gray-100" : "")}
-            onClick={() => handleViewportChange('mobile')}
-          >
-            <Smartphone size={18} />
-          </Button>
-        </div>
       </div>
       
       <div className="pb-20">
-        {showHeroVariants ? (
-          <>
-            <div className="px-3 mb-3">
-              <Button variant="ghost" size="sm" onClick={() => setShowHeroVariants(false)} className="text-xs">
-                ← Retour
-              </Button>
-              <h3 className="font-medium text-sm px-2">Variantes Hero</h3>
-            </div>
-            <div className="grid grid-cols-1 gap-3 px-3">
-              <div className="border border-gray-200 rounded-md overflow-hidden hover:border-builder-blue transition-colors cursor-pointer">
-                <div className="bg-builder-light-blue p-3 text-center">
-                  <h4 className="text-sm font-bold">Hero Centré</h4>
-                  <p className="text-[10px] text-gray-600">Titre + Texte + CTA</p>
-                </div>
-                <img src="https://placehold.co/300x150/4361EE/FFF" alt="Hero Centré" className="w-full h-auto" />
-              </div>
-              
-              <div className="border border-gray-200 rounded-md overflow-hidden hover:border-builder-blue transition-colors cursor-pointer">
-                <div className="bg-builder-light-blue p-3 text-center">
-                  <h4 className="text-sm font-bold">Hero Image Droite</h4>
-                  <p className="text-[10px] text-gray-600">Titre + Texte + CTA + Image</p>
-                </div>
-                <img src="https://placehold.co/300x150/4361EE/FFF" alt="Hero Image Droite" className="w-full h-auto" />
-              </div>
-              
-              <div className="border border-gray-200 rounded-md overflow-hidden hover:border-builder-blue transition-colors cursor-pointer">
-                <div className="bg-builder-light-blue p-3 text-center">
-                  <h4 className="text-sm font-bold">Hero Image Gauche</h4>
-                  <p className="text-[10px] text-gray-600">Image + Titre + Texte + CTA</p>
-                </div>
-                <img src="https://placehold.co/300x150/4361EE/FFF" alt="Hero Image Gauche" className="w-full h-auto" />
-              </div>
-              
-              <div className="border border-gray-200 rounded-md overflow-hidden hover:border-builder-blue transition-colors cursor-pointer">
-                <div className="bg-builder-light-blue p-3 text-center">
-                  <h4 className="text-sm font-bold">Hero Fond Image</h4>
-                  <p className="text-[10px] text-gray-600">Image de fond + Titre + CTA</p>
-                </div>
-                <img src="https://placehold.co/300x150/4361EE/FFF" alt="Hero Fond Image" className="w-full h-auto" />
-              </div>
-            </div>
-          </>
+        {showVariants ? (
+          <VariantList 
+            title={showVariants.type}
+            variants={showVariants.variants}
+            onBack={() => setShowVariants(null)}
+            onSelect={handleComponentSelect}
+          />
         ) : (
           <>
             {activeTab === "layouts" ? (
               <>
                 <SidebarSection title="Navigation" defaultOpen={true}>
                   <div className="grid grid-cols-2 gap-2">
-                    <ComponentPreview title="Barre de nav" icon={<NavIcon />} />
-                    <ComponentPreview title="Pied de page" icon={<FooterIcon />} />
+                    <ComponentPreview 
+                      title="Barre de nav" 
+                      icon={<NavIcon />} 
+                      onClick={() => showVariantsFor("Navbar")}
+                    />
+                    <ComponentPreview 
+                      title="Pied de page" 
+                      icon={<FooterIcon />} 
+                      onClick={() => showVariantsFor("Footer")}
+                    />
                   </div>
                 </SidebarSection>
                 
@@ -267,14 +378,33 @@ const Sidebar = () => {
                     <ComponentPreview 
                       title="Hero" 
                       icon={<HeroIcon />} 
-                      onClick={() => setShowHeroVariants(true)} 
+                      onClick={() => showVariantsFor("Hero")} 
                     />
-                    <ComponentPreview title="Hero Overlay" icon={<HeroIcon />} />
-                    <ComponentPreview title="Section Cartes" icon={<CardsIcon />} />
-                    <ComponentPreview title="Section Fonctionnalités" icon={<FeaturesIcon />} />
-                    <ComponentPreview title="Galerie" icon={<CardsIcon />} />
-                    <ComponentPreview title="Formulaire d'inscription" icon={<FeaturesIcon />} />
-                    <ComponentPreview title="Formulaire de contact" icon={<FeaturesIcon />} />
+                    <ComponentPreview 
+                      title="Section Cartes" 
+                      icon={<CardsIcon />} 
+                      onClick={() => showVariantsFor("Cards")}
+                    />
+                    <ComponentPreview 
+                      title="Section Fonctionnalités" 
+                      icon={<FeaturesIcon />} 
+                      onClick={() => showVariantsFor("Features")}
+                    />
+                    <ComponentPreview 
+                      title="Galerie" 
+                      icon={<CardsIcon />}
+                      onClick={() => handleComponentSelect("Galerie")}
+                    />
+                    <ComponentPreview 
+                      title="Formulaire d'inscription" 
+                      icon={<FeaturesIcon />}
+                      onClick={() => handleComponentSelect("Formulaire d'inscription")}
+                    />
+                    <ComponentPreview 
+                      title="Formulaire de contact" 
+                      icon={<FeaturesIcon />}
+                      onClick={() => handleComponentSelect("Formulaire de contact")}
+                    />
                   </div>
                 </SidebarSection>
               </>
@@ -282,31 +412,91 @@ const Sidebar = () => {
               <>
                 <SidebarSection title="Conteneurs" defaultOpen={true}>
                   <div className="grid grid-cols-2 gap-2">
-                    <ComponentPreview title="Container" icon={<ContainerIcon />} />
-                    <ComponentPreview title="Grille 2 cols" icon={<CardsIcon />} />
-                    <ComponentPreview title="Grille 3 cols" icon={<CardsIcon />} />
-                    <ComponentPreview title="Flexbox" icon={<ContainerIcon />} />
+                    <ComponentPreview 
+                      title="Container" 
+                      icon={<ContainerIcon />}
+                      onClick={() => handleComponentSelect("Container")}
+                    />
+                    <ComponentPreview 
+                      title="Grille 2 cols" 
+                      icon={<CardsIcon />}
+                      onClick={() => handleComponentSelect("Grille 2 cols")}
+                    />
+                    <ComponentPreview 
+                      title="Grille 3 cols" 
+                      icon={<CardsIcon />}
+                      onClick={() => handleComponentSelect("Grille 3 cols")}
+                    />
+                    <ComponentPreview 
+                      title="Flexbox" 
+                      icon={<ContainerIcon />}
+                      onClick={() => handleComponentSelect("Flexbox")}
+                    />
                   </div>
                 </SidebarSection>
                 
                 <SidebarSection title="Basiques" defaultOpen={true}>
                   <div className="grid grid-cols-2 gap-2">
-                    <ComponentPreview title="Titre" icon={<HeadingIcon />} />
-                    <ComponentPreview title="Paragraphe" icon={<ParagraphIcon />} />
-                    <ComponentPreview title="Bouton" icon={<ButtonIcon />} />
-                    <ComponentPreview title="Image" icon={<ImageIcon />} />
-                    <ComponentPreview title="Liste" icon={<ParagraphIcon />} />
-                    <ComponentPreview title="Séparateur" icon={<ButtonIcon />} />
+                    <ComponentPreview 
+                      title="Titre" 
+                      icon={<HeadingIcon />}
+                      onClick={() => handleComponentSelect("Titre")}
+                    />
+                    <ComponentPreview 
+                      title="Paragraphe" 
+                      icon={<ParagraphIcon />}
+                      onClick={() => handleComponentSelect("Paragraphe")}
+                    />
+                    <ComponentPreview 
+                      title="Bouton" 
+                      icon={<ButtonIcon />}
+                      onClick={() => handleComponentSelect("Bouton")}
+                    />
+                    <ComponentPreview 
+                      title="Image" 
+                      icon={<ImageIcon />}
+                      onClick={() => handleComponentSelect("Image")}
+                    />
+                    <ComponentPreview 
+                      title="Liste" 
+                      icon={<ParagraphIcon />}
+                      onClick={() => handleComponentSelect("Liste")}
+                    />
+                    <ComponentPreview 
+                      title="Séparateur" 
+                      icon={<ButtonIcon />}
+                      onClick={() => handleComponentSelect("Séparateur")}
+                    />
                   </div>
                 </SidebarSection>
                 
                 <SidebarSection title="Formulaires">
                   <div className="grid grid-cols-2 gap-2">
-                    <ComponentPreview title="Entrée texte" icon={<ButtonIcon />} />
-                    <ComponentPreview title="Case à cocher" icon={<ButtonIcon />} />
-                    <ComponentPreview title="Radio" icon={<ButtonIcon />} />
-                    <ComponentPreview title="Select" icon={<ButtonIcon />} />
-                    <ComponentPreview title="Textarea" icon={<ButtonIcon />} />
+                    <ComponentPreview 
+                      title="Entrée texte" 
+                      icon={<ButtonIcon />}
+                      onClick={() => handleComponentSelect("Entrée texte")}
+                    />
+                    <ComponentPreview 
+                      title="Case à cocher" 
+                      icon={<ButtonIcon />}
+                      onClick={() => handleComponentSelect("Case à cocher")}
+                    />
+                    <ComponentPreview 
+                      title="Radio" 
+                      icon={<ButtonIcon />}
+                      onClick={() => handleComponentSelect("Radio")}
+                    />
+                    <ComponentPreview 
+                      title="Select" 
+                      icon={<ButtonIcon />}
+                      onClick={() => handleComponentSelect("Select")}
+                    />
+                    <ComponentPreview 
+                      title="Textarea" 
+                      icon={<ButtonIcon />}
+                      onClick={() => handleComponentSelect("Textarea")}
+                    />
                   </div>
                 </SidebarSection>
               </>
