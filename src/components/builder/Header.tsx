@@ -3,21 +3,16 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Undo, Redo, Smartphone, Tablet, Monitor, Save, Share } from "lucide-react";
+import { ArrowLeft, Undo, Redo, Smartphone, Tablet, Monitor, Save } from "lucide-react";
 import { Link } from 'react-router-dom';
-
-interface HeaderProps {
-  onViewportChange?: (viewport: 'desktop' | 'tablet' | 'mobile') => void;
-  onWidthChange?: (width: string) => void;
-  viewportSize?: 'desktop' | 'tablet' | 'mobile';
-  selectedWidth?: string;
-}
+import { HeaderProps } from './HeaderProps';
 
 const Header: React.FC<HeaderProps> = ({ 
   onViewportChange, 
   onWidthChange,
   viewportSize = 'desktop',
-  selectedWidth = "1440"
+  selectedWidth = "1440",
+  onUndo
 }) => {
   return (
     <header className="border-b border-gray-200 bg-white h-16 flex items-center px-4 justify-between sticky top-0 z-50 shadow-sm">
@@ -45,7 +40,12 @@ const Header: React.FC<HeaderProps> = ({
       </div>
       
       <div className="flex items-center space-x-2">
-        <Button variant="outline" size="icon" className="h-9 w-9">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="h-9 w-9"
+          onClick={onUndo}
+        >
           <Undo size={16} />
         </Button>
         <Button variant="outline" size="icon" className="h-9 w-9">
@@ -103,10 +103,6 @@ const Header: React.FC<HeaderProps> = ({
         <Button variant="outline" size="sm" className="h-9 px-3 flex items-center">
           <Save size={16} className="mr-2" />
           Enregistrer
-        </Button>
-        
-        <Button size="sm" className="h-9 px-4 bg-builder-blue hover:bg-builder-dark-blue transition-colors">
-          Publier
         </Button>
       </div>
     </header>
