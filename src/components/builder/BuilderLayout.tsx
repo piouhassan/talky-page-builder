@@ -5,6 +5,7 @@ import Sidebar from './Sidebar';
 import Canvas from './Canvas';
 import PropertyPanel from './PropertyPanel';
 import { toast } from "sonner";
+import { HeaderProps } from './HeaderProps';
 
 // Define component data structure
 export interface ComponentData {
@@ -67,9 +68,11 @@ const BuilderLayout = () => {
     };
   }, []);
 
-  // Save current state to history when components change
+  // Fix the infinite update issue by adding proper dependency checks
   useEffect(() => {
-    if (placedComponents.length > 0) {
+    if (placedComponents.length > 0 && 
+        (historyIndex === -1 || 
+         JSON.stringify(placedComponents) !== JSON.stringify(history[historyIndex]))) {
       // Only add to history if it's a new state
       if (historyIndex === history.length - 1) {
         setHistory(prev => [...prev, JSON.parse(JSON.stringify(placedComponents))]);
@@ -81,7 +84,7 @@ const BuilderLayout = () => {
         setHistoryIndex(newHistory.length);
       }
     }
-  }, [placedComponents]);
+  }, [placedComponents, history, historyIndex]);
 
   // Handle undo
   const handleUndo = () => {
@@ -94,15 +97,30 @@ const BuilderLayout = () => {
     }
   };
 
-  // Update component data
+  // Update component data with recursive equality check to prevent unnecessary updates
   const updateComponentData = (id: string, newData: Partial<ComponentData>) => {
     setPlacedComponents(prev => {
-      return prev.map(comp => {
+      const updated = prev.map(comp => {
         if (comp.id === id) {
-          return { ...comp, ...newData };
+          // Deep merge to prevent losing properties
+          const updatedComp = { 
+            ...comp,
+            content: {...(comp.content || {}), ...(newData.content || {})},
+            style: {...(comp.style || {}), ...(newData.style || {})}
+          };
+          // If the content or style properties were explicitly provided in newData, use them directly
+          if (newData.content) updatedComp.content = {...(comp.content || {}), ...newData.content};
+          if (newData.style) updatedComp.style = {...(comp.style || {}), ...newData.style};
+          return updatedComp;
         }
         return comp;
       });
+      
+      // Only update state if there's an actual change
+      if (JSON.stringify(updated) !== JSON.stringify(prev)) {
+        return updated;
+      }
+      return prev;
     });
   };
 
