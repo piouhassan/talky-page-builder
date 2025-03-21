@@ -20,7 +20,14 @@ const ButtonBlock: React.FC<ButtonBlockProps> = ({ content, style }) => {
   
   return (
     <div className={containerClass}>
-      <Button className="bg-builder-blue hover:bg-builder-dark-blue text-white px-6 py-2 rounded-md">
+      <Button 
+        className="bg-builder-blue hover:bg-builder-dark-blue text-white px-6 py-2 rounded-md"
+        onClick={() => {
+          if (content?.url) {
+            window.open(content.url, '_blank');
+          }
+        }}
+      >
         {content?.buttonText || "Cliquez ici"}
       </Button>
     </div>

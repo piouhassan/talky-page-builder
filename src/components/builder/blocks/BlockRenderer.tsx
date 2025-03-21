@@ -5,6 +5,8 @@ import HeroBlock from './HeroBlock';
 import FeaturesBlock from './FeaturesBlock';
 import ParagraphBlock from './ParagraphBlock';
 import ButtonBlock from './ButtonBlock';
+import ImageBlock from './ImageBlock';
+import TestimonialBlock from './TestimonialBlock';
 
 interface BlockRendererProps {
   component: ComponentData;
@@ -23,6 +25,10 @@ const BlockRenderer: React.FC<BlockRendererProps> = ({ component, isSelected }) 
       return <ParagraphBlock content={content} style={style} />;
     case "Bouton":
       return <ButtonBlock content={content} style={style} />;
+    case "Image":
+      return <ImageBlock content={content} style={style} />;
+    case "Testimonial":
+      return <TestimonialBlock content={content} style={style} />;
     default:
       return (
         <div className="bg-gray-100 p-6 text-center">

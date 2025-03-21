@@ -5,7 +5,6 @@ import Sidebar from './Sidebar';
 import Canvas from './Canvas';
 import PropertyPanel from './PropertyPanel';
 import { toast } from "sonner";
-import { HeaderProps } from './HeaderProps';
 
 // Define component data structure
 export interface ComponentData {
@@ -17,6 +16,18 @@ export interface ComponentData {
     buttonText?: string;
     badge?: string;
     imageUrl?: string;
+    alt?: string;
+    caption?: string;
+    quote?: string;
+    author?: string;
+    role?: string;
+    avatarUrl?: string;
+    features?: Array<{
+      title: string;
+      description: string;
+      icon?: string;
+    }>;
+    url?: string;
   };
   style?: {
     backgroundColor?: string;
@@ -25,7 +36,11 @@ export interface ComponentData {
   };
 }
 
-const BuilderLayout = () => {
+interface BuilderLayoutProps {
+  onSaveConfirm?: (pageData: any) => void;
+}
+
+const BuilderLayout: React.FC<BuilderLayoutProps> = ({ onSaveConfirm }) => {
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
   const [viewportSize, setViewportSize] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
@@ -109,9 +124,13 @@ const BuilderLayout = () => {
       }
     };
     
-    // For now we just log the JSON, in a real app this would be sent to a server
-    console.log(JSON.stringify(pageData, null, 2));
-    toast.success("Page enregistrée avec succès");
+    if (onSaveConfirm) {
+      onSaveConfirm(pageData);
+    } else {
+      // Fallback to console.log if no save handler provided
+      console.log(JSON.stringify(pageData, null, 2));
+      toast.success("Page enregistrée avec succès");
+    }
   };
 
   // Update component data with recursive equality check to prevent unnecessary updates

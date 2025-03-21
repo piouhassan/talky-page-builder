@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { XCircle, Copy, ArrowUp, ArrowDown } from "lucide-react";
@@ -45,10 +44,12 @@ const Canvas: React.FC<CanvasProps> = ({
     const componentType = e.dataTransfer.getData('componentType') || "Hero";
     const componentVariant = e.dataTransfer.getData('componentVariant') || "";
     
+    // Generate a truly unique ID using timestamp and random string
+    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    
     // Create a new component with default content based on type
-    const newId = `component-${Date.now()}`;
     const newComponent: ComponentData = {
-      id: newId,
+      id: uniqueId,
       type: componentType,
     };
     
@@ -58,7 +59,8 @@ const Canvas: React.FC<CanvasProps> = ({
         title: "Restez connecté avec vos amis et votre famille",
         subtitle: "Restez connecté avec vos proches, où que vous soyez et à tout moment. Créez des groupes, partagez des photos, et gardez le contact facilement.",
         buttonText: "Télécharger l'application",
-        badge: "NOUVEAU"
+        badge: "NOUVEAU",
+        imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=400&q=80"
       };
       newComponent.style = {
         backgroundColor: "builder-light-blue",
@@ -69,6 +71,20 @@ const Canvas: React.FC<CanvasProps> = ({
       newComponent.content = {
         title: "Nos fonctionnalités",
         subtitle: "Découvrez tout ce que notre application peut faire pour vous",
+        features: [
+          {
+            title: "Simple d'utilisation",
+            description: "Notre application est conçue pour être facile à utiliser dès le premier jour."
+          },
+          {
+            title: "Rapide et fiable",
+            description: "Performance optimisée pour vous offrir la meilleure expérience possible."
+          },
+          {
+            title: "Sécurisé",
+            description: "Vos données sont protégées avec les meilleures pratiques de sécurité."
+          }
+        ]
       };
       newComponent.style = {
         backgroundColor: "white",
@@ -88,10 +104,34 @@ const Canvas: React.FC<CanvasProps> = ({
     } else if (componentType === "Bouton") {
       newComponent.content = {
         buttonText: "Cliquez ici",
+        url: "https://example.com"
       };
       newComponent.style = {
         backgroundColor: "white",
         padding: "6",
+        textAlign: "center"
+      };
+    } else if (componentType === "Image") {
+      newComponent.content = {
+        imageUrl: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=400&q=80",
+        alt: "Image descriptive",
+        caption: "Légende de l'image"
+      };
+      newComponent.style = {
+        backgroundColor: "white",
+        padding: "6",
+        textAlign: "center"
+      };
+    } else if (componentType === "Testimonial") {
+      newComponent.content = {
+        quote: "Ce produit a complètement transformé notre façon de travailler. Je le recommande vivement !",
+        author: "Jean Dupont",
+        role: "Directeur Marketing",
+        avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&h=100&q=80"
+      };
+      newComponent.style = {
+        backgroundColor: "builder-light-blue",
+        padding: "8",
         textAlign: "center"
       };
     }
@@ -101,7 +141,7 @@ const Canvas: React.FC<CanvasProps> = ({
     
     // Select the newly added component
     const event = new CustomEvent('component-selected', { 
-      detail: { id: newId, type: componentType }
+      detail: { id: uniqueId, type: componentType }
     });
     window.dispatchEvent(event);
   };
@@ -146,10 +186,11 @@ const Canvas: React.FC<CanvasProps> = ({
     e.stopPropagation();
     const componentToDuplicate = components.find(comp => comp.id === id);
     if (componentToDuplicate) {
-      const newId = `component-${Date.now()}`;
+      // Generate a truly unique ID for the duplicate
+      const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
       const newComponent = {
         ...JSON.parse(JSON.stringify(componentToDuplicate)),
-        id: newId
+        id: uniqueId
       };
       
       // Insert after the original component
