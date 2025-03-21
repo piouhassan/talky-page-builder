@@ -1,9 +1,9 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { XCircle, Copy, ArrowUp, ArrowDown } from "lucide-react";
 import { ComponentData } from './BuilderLayout';
+import BlockRenderer from './blocks/BlockRenderer';
 
 interface CanvasProps {
   children?: React.ReactNode;
@@ -61,7 +61,7 @@ const Canvas: React.FC<CanvasProps> = ({
         badge: "NOUVEAU"
       };
       newComponent.style = {
-        backgroundColor: "#E9F0FF",
+        backgroundColor: "builder-light-blue",
         padding: "12",
         textAlign: "center"
       };
@@ -71,7 +71,7 @@ const Canvas: React.FC<CanvasProps> = ({
         subtitle: "Découvrez tout ce que notre application peut faire pour vous",
       };
       newComponent.style = {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "white",
         padding: "12",
         textAlign: "center"
       };
@@ -81,7 +81,7 @@ const Canvas: React.FC<CanvasProps> = ({
         subtitle: "Voici le contenu du paragraphe. Vous pouvez modifier ce texte dans le panneau des propriétés à droite.",
       };
       newComponent.style = {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "white",
         padding: "6",
         textAlign: "left"
       };
@@ -90,7 +90,7 @@ const Canvas: React.FC<CanvasProps> = ({
         buttonText: "Cliquez ici",
       };
       newComponent.style = {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "white",
         padding: "6",
         textAlign: "center"
       };
@@ -185,111 +185,6 @@ const Canvas: React.FC<CanvasProps> = ({
       setComponents(newComponents);
     }
   };
-
-  // Render component based on type
-  const renderComponent = (component: ComponentData) => {
-    const { id, type, content, style } = component;
-    
-    switch(type) {
-      case "Hero":
-        return (
-          <div 
-            className={`bg-${style?.backgroundColor || 'builder-light-blue'} p-${style?.padding || '12'} text-${style?.textAlign || 'center'}`}
-          >
-            <div className="max-w-3xl mx-auto">
-              {content?.badge && (
-                <span className="inline-block py-1 px-3 rounded-full bg-white text-builder-blue text-xs font-medium mb-4">
-                  {content.badge}
-                </span>
-              )}
-              {content?.title && (
-                <h1 className="text-4xl font-bold text-gray-900 mb-6">{content.title}</h1>
-              )}
-              {content?.subtitle && (
-                <p className="text-lg text-gray-600 mb-8">{content.subtitle}</p>
-              )}
-              {content?.buttonText && (
-                <Button className="bg-builder-blue hover:bg-builder-dark-blue text-white px-6 py-2 rounded-md">
-                  {content.buttonText}
-                </Button>
-              )}
-            </div>
-          </div>
-        );
-      
-      case "Features":
-        return (
-          <div className={`bg-${style?.backgroundColor || 'white'} p-${style?.padding || '12'} text-${style?.textAlign || 'center'}`}>
-            <div className="max-w-5xl mx-auto">
-              {content?.title && (
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">{content.title}</h2>
-              )}
-              {content?.subtitle && (
-                <p className="text-lg text-gray-600 mb-12 max-w-3xl mx-auto">{content.subtitle}</p>
-              )}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <div className="w-12 h-12 bg-builder-light-blue rounded-full flex items-center justify-center mb-4 mx-auto">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M5 3v4M3 5h4M6 17v4M4 19h4M13 3l4 4M17 5l-4 4M14 17l3 3M17 17l-3 3" stroke="#4361EE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2 text-center">Simple d'utilisation</h3>
-                  <p className="text-gray-600 text-center">Notre application est conçue pour être facile à utiliser dès le premier jour.</p>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <div className="w-12 h-12 bg-builder-light-blue rounded-full flex items-center justify-center mb-4 mx-auto">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 2v6M12 22v-6M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M2 12h6M22 12h-6M4.93 19.07l4.24-4.24M14.83 9.17l4.24-4.24" stroke="#4361EE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2 text-center">Rapide et fiable</h3>
-                  <p className="text-gray-600 text-center">Performance optimisée pour vous offrir la meilleure expérience possible.</p>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <div className="w-12 h-12 bg-builder-light-blue rounded-full flex items-center justify-center mb-4 mx-auto">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="#4361EE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M9 12l2 2 4-4" stroke="#4361EE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2 text-center">Sécurisé</h3>
-                  <p className="text-gray-600 text-center">Vos données sont protégées avec les meilleures pratiques de sécurité.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      
-      case "Paragraphe":
-        return (
-          <div className={`bg-${style?.backgroundColor || 'white'} p-${style?.padding || '6'} text-${style?.textAlign || 'left'}`}>
-            {content?.title && (
-              <h3 className="text-2xl font-bold mb-4">{content.title}</h3>
-            )}
-            {content?.subtitle && (
-              <p className="text-gray-700">{content.subtitle}</p>
-            )}
-          </div>
-        );
-      
-      case "Bouton":
-        return (
-          <div className={`bg-${style?.backgroundColor || 'white'} p-${style?.padding || '6'} text-${style?.textAlign || 'center'}`}>
-            <Button className="bg-builder-blue hover:bg-builder-dark-blue text-white px-6 py-2 rounded-md">
-              {content?.buttonText || "Cliquez ici"}
-            </Button>
-          </div>
-        );
-      
-      default:
-        return (
-          <div className="bg-gray-100 p-6 text-center">
-            <p className="text-gray-500">Composant non reconnu: {type}</p>
-          </div>
-        );
-    }
-  };
   
   return (
     <div 
@@ -323,7 +218,7 @@ const Canvas: React.FC<CanvasProps> = ({
                 className={`relative border-2 ${selectedComponentId === component.id ? 'border-builder-blue' : 'border-transparent'} hover:border-builder-blue group`}
                 onClick={(e) => handleComponentClick(e, component.id, component.type)}
               >
-                {renderComponent(component)}
+                <BlockRenderer component={component} isSelected={selectedComponentId === component.id} />
                 
                 {/* Component action buttons */}
                 <div className="absolute top-2 right-2 flex space-x-1 bg-white border border-gray-200 rounded opacity-0 group-hover:opacity-100 transition-opacity">

@@ -1,11 +1,19 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Undo, Redo, Smartphone, Tablet, Monitor, Save } from "lucide-react";
 import { Link } from 'react-router-dom';
 import { HeaderProps } from './HeaderProps';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
 
 const Header: React.FC<HeaderProps> = ({ 
   onViewportChange, 
@@ -14,6 +22,8 @@ const Header: React.FC<HeaderProps> = ({
   selectedWidth = "1440",
   onUndo
 }) => {
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+
   return (
     <header className="border-b border-gray-200 bg-white h-16 flex items-center px-4 justify-between sticky top-0 z-50 shadow-sm">
       <div className="flex items-center space-x-4">
@@ -100,11 +110,40 @@ const Header: React.FC<HeaderProps> = ({
         
         <div className="h-6 w-px bg-gray-200 mx-2"></div>
         
-        <Button variant="outline" size="sm" className="h-9 px-3 flex items-center">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="h-9 px-3 flex items-center"
+          onClick={() => setSaveDialogOpen(true)}
+        >
           <Save size={16} className="mr-2" />
           Enregistrer
         </Button>
       </div>
+
+      {/* Save Confirmation Dialog */}
+      <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enregistrer votre page</DialogTitle>
+            <DialogDescription>
+              Voulez-vous enregistrer les modifications apportées à cette page?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={() => {
+              // Here you would handle saving the page
+              console.log("Page saved");
+              setSaveDialogOpen(false);
+            }}>
+              Enregistrer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 };

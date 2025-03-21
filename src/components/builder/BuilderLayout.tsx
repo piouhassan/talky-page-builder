@@ -16,6 +16,7 @@ export interface ComponentData {
     subtitle?: string;
     buttonText?: string;
     badge?: string;
+    imageUrl?: string;
   };
   style?: {
     backgroundColor?: string;
@@ -33,7 +34,7 @@ const BuilderLayout = () => {
   const [placedComponents, setPlacedComponents] = useState<ComponentData[]>([]);
   const [history, setHistory] = useState<ComponentData[][]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
-
+  
   const handleViewportChange = (size: 'desktop' | 'tablet' | 'mobile') => {
     setViewportSize(size);
   };
@@ -97,6 +98,22 @@ const BuilderLayout = () => {
     }
   };
 
+  // Save page data as JSON
+  const savePage = () => {
+    const pageData = {
+      title: "Page sans titre",
+      components: placedComponents,
+      settings: {
+        viewportSize,
+        selectedWidth
+      }
+    };
+    
+    // For now we just log the JSON, in a real app this would be sent to a server
+    console.log(JSON.stringify(pageData, null, 2));
+    toast.success("Page enregistrée avec succès");
+  };
+
   // Update component data with recursive equality check to prevent unnecessary updates
   const updateComponentData = (id: string, newData: Partial<ComponentData>) => {
     setPlacedComponents(prev => {
@@ -137,6 +154,7 @@ const BuilderLayout = () => {
         viewportSize={viewportSize}
         selectedWidth={selectedWidth}
         onUndo={handleUndo}
+        onSave={savePage}
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar onComponentSelect={handleComponentSelect} />
