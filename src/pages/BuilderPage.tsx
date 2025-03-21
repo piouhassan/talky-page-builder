@@ -10,6 +10,7 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const BuilderPage = () => {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -53,7 +54,7 @@ const BuilderPage = () => {
                 // Copy to clipboard
                 if (savedJson) {
                   navigator.clipboard.writeText(savedJson);
-                  // Could add a toast here
+                  toast.success("JSON copié dans le presse-papier");
                 }
               }}
             >

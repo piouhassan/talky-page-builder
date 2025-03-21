@@ -113,6 +113,17 @@ const BuilderLayout: React.FC<BuilderLayoutProps> = ({ onSaveConfirm }) => {
     }
   };
 
+  // Handle redo
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1) {
+      setHistoryIndex(prev => prev + 1);
+      setPlacedComponents(JSON.parse(JSON.stringify(history[historyIndex + 1])));
+      toast.info("Rétablissement effectué");
+    } else {
+      toast.warning("Aucune action à rétablir");
+    }
+  };
+
   // Save page data as JSON
   const savePage = () => {
     const pageData = {
@@ -165,6 +176,15 @@ const BuilderLayout: React.FC<BuilderLayoutProps> = ({ onSaveConfirm }) => {
     setPlacedComponents(prev => [...prev, componentData]);
   };
 
+  // Add component between existing components
+  const addComponentBetween = (componentData: ComponentData, index: number) => {
+    setPlacedComponents(prev => {
+      const newComponents = [...prev];
+      newComponents.splice(index, 0, componentData);
+      return newComponents;
+    });
+  };
+
   return (
     <div className="flex flex-col h-screen bg-white">
       <Header 
@@ -173,6 +193,7 @@ const BuilderLayout: React.FC<BuilderLayoutProps> = ({ onSaveConfirm }) => {
         viewportSize={viewportSize}
         selectedWidth={selectedWidth}
         onUndo={handleUndo}
+        onRedo={handleRedo}
         onSave={savePage}
       />
       <div className="flex flex-1 overflow-hidden">
@@ -184,6 +205,7 @@ const BuilderLayout: React.FC<BuilderLayoutProps> = ({ onSaveConfirm }) => {
           setComponents={setPlacedComponents}
           selectedComponentId={selectedComponentId}
           addComponent={addComponent}
+          addComponentBetween={addComponentBetween}
         />
         {showPropertyPanel && (
           <PropertyPanel 

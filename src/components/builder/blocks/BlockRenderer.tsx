@@ -7,6 +7,8 @@ import ParagraphBlock from './ParagraphBlock';
 import ButtonBlock from './ButtonBlock';
 import ImageBlock from './ImageBlock';
 import TestimonialBlock from './TestimonialBlock';
+import NavbarBlock from './NavbarBlock';
+import FooterBlock from './FooterBlock';
 
 interface BlockRendererProps {
   component: ComponentData;
@@ -29,6 +31,10 @@ const BlockRenderer: React.FC<BlockRendererProps> = ({ component, isSelected }) 
       return <ImageBlock content={content} style={style} />;
     case "Testimonial":
       return <TestimonialBlock content={content} style={style} />;
+    case "Navbar":
+      return <NavbarBlock content={content} style={style} />;
+    case "Footer":
+      return <FooterBlock content={content} style={style} />;
     default:
       return (
         <div className="bg-gray-100 p-6 text-center">

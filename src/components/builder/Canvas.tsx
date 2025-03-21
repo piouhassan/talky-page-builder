@@ -1,6 +1,7 @@
+
 import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { XCircle, Copy, ArrowUp, ArrowDown } from "lucide-react";
+import { XCircle, Copy, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { ComponentData } from './BuilderLayout';
 import BlockRenderer from './blocks/BlockRenderer';
 
@@ -12,6 +13,7 @@ interface CanvasProps {
   setComponents: React.Dispatch<React.SetStateAction<ComponentData[]>>;
   selectedComponentId: string | null;
   addComponent: (componentData: ComponentData) => void;
+  addComponentBetween?: (componentData: ComponentData, index: number) => void;
 }
 
 const Canvas: React.FC<CanvasProps> = ({ 
@@ -21,9 +23,11 @@ const Canvas: React.FC<CanvasProps> = ({
   components,
   setComponents,
   selectedComponentId,
-  addComponent
+  addComponent,
+  addComponentBetween
 }) => {
   const [dropzoneActive, setDropzoneActive] = useState(false);
+  const [betweenDropzoneActive, setbetweenDropzoneActive] = useState<number | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   
   // Handle drag over event
@@ -34,6 +38,39 @@ const Canvas: React.FC<CanvasProps> = ({
   
   const handleDragLeave = () => {
     setDropzoneActive(false);
+  };
+
+  // Handle drag over for between components
+  const handleBetweenDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setbetweenDropzoneActive(index);
+  };
+  
+  const handleBetweenDragLeave = () => {
+    setbetweenDropzoneActive(null);
+  };
+
+  // Handle drop for between components
+  const handleBetweenDrop = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setbetweenDropzoneActive(null);
+    
+    // Get the component type from dataTransfer
+    const componentType = e.dataTransfer.getData('componentType') || "Hero";
+    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
+    
+    // Generate a truly unique ID using timestamp and random string
+    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    
+    // Create a new component with default content based on type
+    const newComponent = createComponentFromType(componentType, uniqueId);
+    
+    // Add component at specific index
+    if (addComponentBetween) {
+      addComponentBetween(newComponent, index);
+    }
   };
   
   const handleDrop = (e: React.DragEvent) => {
@@ -48,6 +85,20 @@ const Canvas: React.FC<CanvasProps> = ({
     const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
     
     // Create a new component with default content based on type
+    const newComponent = createComponentFromType(componentType, uniqueId);
+    
+    // Add the new component
+    addComponent(newComponent);
+    
+    // Select the newly added component
+    const event = new CustomEvent('component-selected', { 
+      detail: { id: uniqueId, type: componentType }
+    });
+    window.dispatchEvent(event);
+  };
+
+  // Create component data based on type
+  const createComponentFromType = (componentType: string, uniqueId: string): ComponentData => {
     const newComponent: ComponentData = {
       id: uniqueId,
       type: componentType,
@@ -65,6 +116,28 @@ const Canvas: React.FC<CanvasProps> = ({
       newComponent.style = {
         backgroundColor: "builder-light-blue",
         padding: "12",
+        textAlign: "center"
+      };
+    } else if (componentType === "Navbar") {
+      newComponent.content = {
+        title: "Ma Marque",
+        subtitle: "Accueil,Fonctionnalités,Tarifs,Contact",
+        buttonText: "Connexion"
+      };
+      newComponent.style = {
+        backgroundColor: "white",
+        padding: "4",
+        textAlign: "center"
+      };
+    } else if (componentType === "Footer") {
+      newComponent.content = {
+        title: "Ma Marque",
+        subtitle: "© 2023 Ma Marque. Tous droits réservés.",
+        buttonText: "Politique de confidentialité,Conditions d'utilisation,Contact"
+      };
+      newComponent.style = {
+        backgroundColor: "gray-100",
+        padding: "8",
         textAlign: "center"
       };
     } else if (componentType === "Features") {
@@ -135,15 +208,8 @@ const Canvas: React.FC<CanvasProps> = ({
         textAlign: "center"
       };
     }
-    
-    // Add the new component
-    addComponent(newComponent);
-    
-    // Select the newly added component
-    const event = new CustomEvent('component-selected', { 
-      detail: { id: uniqueId, type: componentType }
-    });
-    window.dispatchEvent(event);
+
+    return newComponent;
   };
 
   // Determine canvas width based on the selected screen size
@@ -226,6 +292,23 @@ const Canvas: React.FC<CanvasProps> = ({
       setComponents(newComponents);
     }
   };
+
+  // Add component button between existing components
+  const handleAddComponentClick = (index: number) => {
+    // Create a new Paragraph component as a default
+    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    const newComponent = createComponentFromType("Paragraphe", uniqueId);
+    
+    if (addComponentBetween) {
+      addComponentBetween(newComponent, index);
+    }
+    
+    // Select the newly added component
+    const event = new CustomEvent('component-selected', { 
+      detail: { id: uniqueId, type: "Paragraphe" }
+    });
+    window.dispatchEvent(event);
+  };
   
   return (
     <div 
@@ -253,70 +336,109 @@ const Canvas: React.FC<CanvasProps> = ({
               <p className="text-sm">Ou choisissez un modèle pour commencer</p>
             </div>
           ) : (
-            components.map((component) => (
+            <>
+              {/* Add button at the top */}
               <div 
-                key={component.id} 
-                className={`relative border-2 ${selectedComponentId === component.id ? 'border-builder-blue' : 'border-transparent'} hover:border-builder-blue group`}
-                onClick={(e) => handleComponentClick(e, component.id, component.type)}
+                className="relative w-full py-2 group hover:bg-gray-50 transition-colors cursor-pointer flex justify-center"
+                onDragOver={(e) => handleBetweenDragOver(e, 0)}
+                onDragLeave={handleBetweenDragLeave}
+                onDrop={(e) => handleBetweenDrop(e, 0)}
               >
-                <BlockRenderer component={component} isSelected={selectedComponentId === component.id} />
-                
-                {/* Component action buttons */}
-                <div className="absolute top-2 right-2 flex space-x-1 bg-white border border-gray-200 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={(e) => handleDuplicate(e, component.id)}
-                    title="Dupliquer"
-                  >
-                    <Copy size={16} className="text-gray-500" />
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={(e) => handleMoveUp(e, component.id)}
-                    disabled={components.indexOf(component) === 0}
-                    title="Déplacer vers le haut"
-                  >
-                    <ArrowUp size={16} className="text-gray-500" />
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={(e) => handleMoveDown(e, component.id)}
-                    disabled={components.indexOf(component) === components.length - 1}
-                    title="Déplacer vers le bas"
-                  >
-                    <ArrowDown size={16} className="text-gray-500" />
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setComponents(components.filter(comp => comp.id !== component.id));
-                      if (selectedComponentId === component.id) {
-                        // Notify property panel
-                        const event = new CustomEvent('component-selected', { 
-                          detail: { id: null, type: null }
-                        });
-                        window.dispatchEvent(event);
-                      }
-                    }}
-                    title="Supprimer"
-                  >
-                    <XCircle size={16} className="text-gray-500" />
-                  </Button>
-                </div>
+                <div className={`h-1 w-full ${betweenDropzoneActive === 0 ? 'bg-builder-blue' : 'bg-transparent'} transition-colors rounded-full mx-auto`}></div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="absolute opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => handleAddComponentClick(0)}
+                >
+                  <Plus size={16} className="mr-1" /> Ajouter
+                </Button>
               </div>
-            ))
+              
+              {components.map((component, index) => (
+                <React.Fragment key={component.id}>
+                  <div 
+                    className={`relative border-2 ${selectedComponentId === component.id ? 'border-builder-blue' : 'border-transparent'} hover:border-builder-blue group`}
+                    onClick={(e) => handleComponentClick(e, component.id, component.type)}
+                  >
+                    <BlockRenderer component={component} isSelected={selectedComponentId === component.id} />
+                    
+                    {/* Component action buttons */}
+                    <div className="absolute top-2 right-2 flex space-x-1 bg-white border border-gray-200 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => handleDuplicate(e, component.id)}
+                        title="Dupliquer"
+                      >
+                        <Copy size={16} className="text-gray-500" />
+                      </Button>
+                      
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => handleMoveUp(e, component.id)}
+                        disabled={components.indexOf(component) === 0}
+                        title="Déplacer vers le haut"
+                      >
+                        <ArrowUp size={16} className="text-gray-500" />
+                      </Button>
+                      
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => handleMoveDown(e, component.id)}
+                        disabled={components.indexOf(component) === components.length - 1}
+                        title="Déplacer vers le bas"
+                      >
+                        <ArrowDown size={16} className="text-gray-500" />
+                      </Button>
+                      
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setComponents(components.filter(comp => comp.id !== component.id));
+                          if (selectedComponentId === component.id) {
+                            // Notify property panel
+                            const event = new CustomEvent('component-selected', { 
+                              detail: { id: null, type: null }
+                            });
+                            window.dispatchEvent(event);
+                          }
+                        }}
+                        title="Supprimer"
+                      >
+                        <XCircle size={16} className="text-gray-500" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Add button between components */}
+                  <div 
+                    className="relative w-full py-2 group hover:bg-gray-50 transition-colors cursor-pointer flex justify-center"
+                    onDragOver={(e) => handleBetweenDragOver(e, index + 1)}
+                    onDragLeave={handleBetweenDragLeave}
+                    onDrop={(e) => handleBetweenDrop(e, index + 1)}
+                  >
+                    <div className={`h-1 w-full ${betweenDropzoneActive === index + 1 ? 'bg-builder-blue' : 'bg-transparent'} transition-colors rounded-full mx-auto`}></div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="absolute opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleAddComponentClick(index + 1)}
+                    >
+                      <Plus size={16} className="mr-1" /> Ajouter
+                    </Button>
+                  </div>
+                </React.Fragment>
+              ))}
+            </>
           )}
         </div>
       </div>
