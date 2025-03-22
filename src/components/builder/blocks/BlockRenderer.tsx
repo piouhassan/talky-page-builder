@@ -44,7 +44,7 @@ const BlockRenderer: React.FC<BlockRendererProps> = ({ component, isSelected, on
     case "Container":
       return <ContainerBlock content={content} style={style} isSelected={isSelected} onDrop={handleContainerDrop} />;
     case "GridTwoCols":
-      return <GridTwoColsBlock content={content} style={style} isSelected={isSelected} />;
+      return <GridTwoColsBlock content={content} style={style} isSelected={isSelected} onColumnDrop={handleColumnDrop} />;
     case "GridThreeCols":
       return <GridThreeColsBlock content={content} style={style} isSelected={isSelected} onColumnDrop={handleColumnDrop} />;
     case "Flexbox":

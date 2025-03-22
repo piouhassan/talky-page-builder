@@ -70,7 +70,7 @@ const Canvas: React.FC<CanvasProps> = ({
     if (addComponentBetween) {
       addComponentBetween(newComponent, index);
     }
-  }, [addComponentBetween]);
+  }, [addComponentBetween, createComponentFromType]);
   
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -94,7 +94,7 @@ const Canvas: React.FC<CanvasProps> = ({
       detail: { id: uniqueId, type: componentType }
     });
     window.dispatchEvent(event);
-  }, [addComponent]);
+  }, [addComponent, createComponentFromType]);
 
   // Handle dropping components into a container
   const handleContainerDrop = useCallback((e: React.DragEvent, containerId: string) => {
@@ -141,7 +141,7 @@ const Canvas: React.FC<CanvasProps> = ({
       detail: { id: uniqueId, type: componentType }
     });
     window.dispatchEvent(event);
-  }, [setComponents]);
+  }, [setComponents, createComponentFromType]);
 
   // Handle dropping components into a grid column
   const handleColumnDrop = useCallback((e: React.DragEvent, containerId: string, columnIndex: number) => {
@@ -162,34 +162,74 @@ const Canvas: React.FC<CanvasProps> = ({
     setComponents(prevComponents => {
       return prevComponents.map(component => {
         if (component.id === containerId) {
-          // Initialize the columns array if it doesn't exist
-          if (!component.content) {
-            component.content = {};
-          }
-          if (!component.content.columns) {
-            component.content.columns = [[], [], []];
-          }
-          
-          // Create a copy of the columns array
-          const newColumns = [...component.content.columns];
-          
-          // Add the new component to the specified column
-          if (!newColumns[columnIndex]) {
-            newColumns[columnIndex] = [];
-          }
-          newColumns[columnIndex] = [...newColumns[columnIndex], newComponent];
-          
-          // Return the updated component
-          return {
-            ...component,
-            content: {
-              ...component.content,
-              columns: newColumns
+          // For GridTwoCols
+          if (component.type === "GridTwoCols") {
+            if (!component.content) {
+              component.content = {};
             }
-          };
+            
+            if (columnIndex === 0) {
+              // Left column
+              if (!component.content.leftChildren) {
+                component.content.leftChildren = [];
+              }
+              
+              return {
+                ...component,
+                content: {
+                  ...component.content,
+                  leftChildren: [...component.content.leftChildren, newComponent]
+                }
+              };
+            } else {
+              // Right column
+              if (!component.content.rightChildren) {
+                component.content.rightChildren = [];
+              }
+              
+              return {
+                ...component,
+                content: {
+                  ...component.content,
+                  rightChildren: [...component.content.rightChildren, newComponent]
+                }
+              };
+            }
+          } 
+          // For GridThreeCols
+          else if (component.type === "GridThreeCols") {
+            if (!component.content) {
+              component.content = {};
+            }
+            
+            if (!component.content.columns) {
+              // Initialize as an array with three empty arrays
+              component.content.columns = [[], [], []];
+            }
+            
+            // Create a copy of the columns array
+            const newColumns = [...component.content.columns];
+            
+            // Ensure the column at the specified index exists
+            if (!newColumns[columnIndex]) {
+              newColumns[columnIndex] = [];
+            }
+            
+            // Add the new component to the specified column
+            newColumns[columnIndex] = [...newColumns[columnIndex], newComponent];
+            
+            // Return the updated component
+            return {
+              ...component,
+              content: {
+                ...component.content,
+                columns: newColumns
+              }
+            };
+          }
         }
         return component;
-      });
+      }) as ComponentData[];  // Explicitly cast to ensure type compatibility
     });
     
     // Select the newly added component
@@ -197,7 +237,7 @@ const Canvas: React.FC<CanvasProps> = ({
       detail: { id: uniqueId, type: componentType }
     });
     window.dispatchEvent(event);
-  }, [setComponents]);
+  }, [setComponents, createComponentFromType]);
 
   // Create component data based on type
   const createComponentFromType = useCallback((componentType: string, uniqueId: string): ComponentData => {

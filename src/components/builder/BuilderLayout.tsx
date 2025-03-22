@@ -33,10 +33,11 @@ export interface ComponentData {
     children?: ComponentData[];
     leftChildren?: ComponentData[];
     rightChildren?: ComponentData[];
-    columns?: [ComponentData[], ComponentData[], ComponentData[]];
+    columns?: ComponentData[][];  // Changed from tuple type to more flexible array of arrays
     direction?: string;
     wrap?: boolean;
     justifyContent?: string;
+    alignItems?: string;
     gap?: string;
     secondaryButtonText?: string;
     secondaryButtonUrl?: string;
