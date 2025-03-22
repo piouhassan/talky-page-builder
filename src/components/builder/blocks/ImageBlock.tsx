@@ -16,7 +16,12 @@ interface ImageBlockProps {
 }
 
 const ImageBlock: React.FC<ImageBlockProps> = ({ content, style }) => {
-  // Utiliser useMemo pour éviter les recalculs inutiles qui causent des clignotements
+  // Use stable IDs for all component properties to prevent re-renders
+  const imageUrl = useMemo(() => content?.imageUrl || '', [content?.imageUrl]);
+  const alt = useMemo(() => content?.alt || 'Image', [content?.alt]);
+  const caption = useMemo(() => content?.caption || '', [content?.caption]);
+  
+  // Memoize the container class to prevent recalculations
   const containerClass = useMemo(() => {
     const bgClass = style?.backgroundColor ? `bg-${style.backgroundColor}` : 'bg-white';
     const paddingClass = style?.padding ? `p-${style.padding}` : 'p-6';
@@ -28,15 +33,15 @@ const ImageBlock: React.FC<ImageBlockProps> = ({ content, style }) => {
   return (
     <div className={containerClass}>
       <div className="max-w-3xl mx-auto">
-        {content?.imageUrl && (
+        {imageUrl && (
           <figure>
             <img 
-              src={content.imageUrl} 
-              alt={content.alt || "Image"} 
+              src={imageUrl} 
+              alt={alt} 
               className="max-w-full h-auto rounded-lg mx-auto shadow-md"
             />
-            {content?.caption && (
-              <figcaption className="text-sm text-gray-500 mt-2">{content.caption}</figcaption>
+            {caption && (
+              <figcaption className="text-sm text-gray-500 mt-2">{caption}</figcaption>
             )}
           </figure>
         )}

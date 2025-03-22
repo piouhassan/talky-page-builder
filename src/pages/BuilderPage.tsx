@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import BuilderLayout from '@/components/builder/BuilderLayout';
 import { 
   Dialog,
@@ -19,32 +19,32 @@ const BuilderPage = () => {
   const [savedJson, setSavedJson] = useState<string | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   
-  const handleSave = (pageData: any) => {
+  // Use useCallback to prevent unnecessary re-renders
+  const handleSave = useCallback((pageData: any) => {
     setSavedJson(JSON.stringify(pageData, null, 2));
     setShowSaveDialog(true);
-  };
+  }, []);
   
-  // Function to copy code to clipboard
-  const copyToClipboard = (text: string) => {
+  // Function to copy code to clipboard with useCallback
+  const copyToClipboard = useCallback((text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("JSON copié dans le presse-papier");
-  };
+  }, []);
 
-  // Gestionnaire pour ouvrir la bibliothèque média
-  const handleOpenMediaLibrary = () => {
+  // Gestionnaire pour ouvrir la bibliothèque média with useCallback
+  const handleOpenMediaLibrary = useCallback(() => {
     setShowMediaLibrary(true);
-  };
+  }, []);
   
-  // Gestionnaire pour la sélection d'une image
-  const handleSelectImage = (imageUrl: string) => {
+  // Gestionnaire pour la sélection d'une image with useCallback
+  const handleSelectImage = useCallback((imageUrl: string) => {
     setSelectedMedia(imageUrl);
     // Cette information sera utilisée par les composants qui ont besoin de l'image sélectionnée
-    // On pourrait utiliser un contexte pour une implémentation plus robuste
     const event = new CustomEvent('media-selected', { 
       detail: { imageUrl }
     });
     window.dispatchEvent(event);
-  };
+  }, []);
   
   return (
     <>
