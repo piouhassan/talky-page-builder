@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
@@ -38,9 +37,10 @@ export interface ComponentData {
 
 interface BuilderLayoutProps {
   onSaveConfirm?: (pageData: any) => void;
+  onMediaLibraryOpen?: () => void;
 }
 
-const BuilderLayout: React.FC<BuilderLayoutProps> = ({ onSaveConfirm }) => {
+const BuilderLayout: React.FC<BuilderLayoutProps> = ({ onSaveConfirm, onMediaLibraryOpen }) => {
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
   const [viewportSize, setViewportSize] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
@@ -195,6 +195,7 @@ const BuilderLayout: React.FC<BuilderLayoutProps> = ({ onSaveConfirm }) => {
         onUndo={handleUndo}
         onRedo={handleRedo}
         onSave={savePage}
+        onMediaLibraryOpen={onMediaLibraryOpen}
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar onComponentSelect={handleComponentSelect} />
@@ -213,6 +214,7 @@ const BuilderLayout: React.FC<BuilderLayoutProps> = ({ onSaveConfirm }) => {
             selectedComponentId={selectedComponentId} 
             componentData={placedComponents.find(c => c.id === selectedComponentId)}
             updateComponentData={updateComponentData}
+            onMediaLibraryOpen={onMediaLibraryOpen}
           />
         )}
       </div>

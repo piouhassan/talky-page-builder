@@ -11,10 +11,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import MediaLibraryDialog from '@/components/builder/MediaLibraryDialog';
 
 const BuilderPage = () => {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [savedJson, setSavedJson] = useState<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   
   const handleSave = (pageData: any) => {
     setSavedJson(JSON.stringify(pageData, null, 2));
@@ -26,10 +29,29 @@ const BuilderPage = () => {
     navigator.clipboard.writeText(text);
     toast.success("JSON copié dans le presse-papier");
   };
+
+  // Gestionnaire pour ouvrir la bibliothèque média
+  const handleOpenMediaLibrary = () => {
+    setShowMediaLibrary(true);
+  };
+  
+  // Gestionnaire pour la sélection d'une image
+  const handleSelectImage = (imageUrl: string) => {
+    setSelectedMedia(imageUrl);
+    // Cette information sera utilisée par les composants qui ont besoin de l'image sélectionnée
+    // On pourrait utiliser un contexte pour une implémentation plus robuste
+    const event = new CustomEvent('media-selected', { 
+      detail: { imageUrl }
+    });
+    window.dispatchEvent(event);
+  };
   
   return (
     <>
-      <BuilderLayout onSaveConfirm={handleSave} />
+      <BuilderLayout 
+        onSaveConfirm={handleSave} 
+        onMediaLibraryOpen={handleOpenMediaLibrary}
+      />
       
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
         <DialogContent className="sm:max-w-md">
@@ -63,6 +85,12 @@ const BuilderPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <MediaLibraryDialog 
+        open={showMediaLibrary} 
+        onOpenChange={setShowMediaLibrary}
+        onSelectImage={handleSelectImage}
+      />
     </>
   );
 };

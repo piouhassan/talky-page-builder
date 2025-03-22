@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,13 +43,15 @@ interface PropertyPanelProps {
   selectedComponentId?: string | null;
   componentData?: ComponentData;
   updateComponentData?: (id: string, newData: Partial<ComponentData>) => void;
+  onMediaLibraryOpen?: () => void;
 }
 
 const PropertyPanel: React.FC<PropertyPanelProps> = ({ 
   selectedComponent, 
   selectedComponentId, 
   componentData,
-  updateComponentData 
+  updateComponentData,
+  onMediaLibraryOpen
 }) => {
   const [localContent, setLocalContent] = useState<any>({});
   const [localStyle, setLocalStyle] = useState<any>({});
@@ -97,31 +98,35 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
     }));
   };
 
-  const handleMediaUpload = () => {
-    // Simulate a file input click
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      if (target.files && target.files[0]) {
-        const file = target.files[0];
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const imageUrl = e.target?.result as string;
-          // Update different fields based on component type
-          if (selectedComponent === 'Hero') {
-            handleContentChange('imageUrl', imageUrl);
-          } else if (selectedComponent === 'Image') {
-            handleContentChange('imageUrl', imageUrl);
-          } else if (selectedComponent === 'Testimonial') {
-            handleContentChange('avatarUrl', imageUrl);
-          }
-        };
-        reader.readAsDataURL(file);
+  // Écouter l'événement de sélection d'image
+  useEffect(() => {
+    const handleMediaSelected = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail && customEvent.detail.imageUrl) {
+        const imageUrl = customEvent.detail.imageUrl;
+        
+        // Mettre à jour différents champs en fonction du type de composant
+        if (selectedComponent === 'Hero') {
+          handleContentChange('imageUrl', imageUrl);
+        } else if (selectedComponent === 'Image') {
+          handleContentChange('imageUrl', imageUrl);
+        } else if (selectedComponent === 'Testimonial') {
+          handleContentChange('avatarUrl', imageUrl);
+        }
       }
     };
-    input.click();
+    
+    window.addEventListener('media-selected', handleMediaSelected);
+    
+    return () => {
+      window.removeEventListener('media-selected', handleMediaSelected);
+    };
+  }, [selectedComponent]);
+
+  const handleMediaUpload = () => {
+    if (onMediaLibraryOpen) {
+      onMediaLibraryOpen();
+    }
   };
   
   const renderContentTab = () => {

@@ -1,5 +1,6 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
+import { cn } from "@/lib/utils";
 
 interface ImageBlockProps {
   content?: {
@@ -15,8 +16,14 @@ interface ImageBlockProps {
 }
 
 const ImageBlock: React.FC<ImageBlockProps> = ({ content, style }) => {
-  // Apply CSS classes based on style props
-  const containerClass = `bg-${style?.backgroundColor || 'white'} p-${style?.padding || '6'} text-${style?.textAlign || 'center'}`;
+  // Utiliser useMemo pour éviter les recalculs inutiles qui causent des clignotements
+  const containerClass = useMemo(() => {
+    const bgClass = style?.backgroundColor ? `bg-${style.backgroundColor}` : 'bg-white';
+    const paddingClass = style?.padding ? `p-${style.padding}` : 'p-6';
+    const alignClass = style?.textAlign ? `text-${style.textAlign}` : 'text-center';
+    
+    return cn(bgClass, paddingClass, alignClass);
+  }, [style?.backgroundColor, style?.padding, style?.textAlign]);
   
   return (
     <div className={containerClass}>
