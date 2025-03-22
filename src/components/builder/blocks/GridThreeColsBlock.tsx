@@ -8,7 +8,7 @@ interface GridThreeColsBlockProps {
   content?: {
     title?: string;
     subtitle?: string;
-    columns?: [ComponentData[], ComponentData[], ComponentData[]];
+    columns?: ComponentData[][];
     gap?: string;
   };
   style?: {

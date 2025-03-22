@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { XCircle, Copy, ArrowUp, ArrowDown, Plus } from "lucide-react";
@@ -29,217 +30,7 @@ const Canvas: React.FC<CanvasProps> = ({
   const [betweenDropzoneActive, setbetweenDropzoneActive] = useState<number | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   
-  // Handle drag over event
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDropzoneActive(true);
-  }, []);
-  
-  const handleDragLeave = useCallback(() => {
-    setDropzoneActive(false);
-  }, []);
-
-  // Handle drag over for between components
-  const handleBetweenDragOver = useCallback((e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setbetweenDropzoneActive(index);
-  }, []);
-  
-  const handleBetweenDragLeave = useCallback(() => {
-    setbetweenDropzoneActive(null);
-  }, []);
-
-  // Handle drop for between components
-  const handleBetweenDrop = useCallback((e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setbetweenDropzoneActive(null);
-    
-    // Get the component type from dataTransfer
-    const componentType = e.dataTransfer.getData('componentType') || "Hero";
-    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
-    
-    // Generate a truly unique ID using timestamp and random string
-    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-    
-    // Create a new component with default content based on type
-    const newComponent = createComponentFromType(componentType, uniqueId);
-    
-    // Add component at specific index
-    if (addComponentBetween) {
-      addComponentBetween(newComponent, index);
-    }
-  }, [addComponentBetween, createComponentFromType]);
-  
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDropzoneActive(false);
-    
-    // Get the component type from dataTransfer
-    const componentType = e.dataTransfer.getData('componentType') || "Hero";
-    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
-    
-    // Generate a truly unique ID using timestamp and random string
-    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-    
-    // Create a new component with default content based on type
-    const newComponent = createComponentFromType(componentType, uniqueId);
-    
-    // Add the new component
-    addComponent(newComponent);
-    
-    // Select the newly added component
-    const event = new CustomEvent('component-selected', { 
-      detail: { id: uniqueId, type: componentType }
-    });
-    window.dispatchEvent(event);
-  }, [addComponent, createComponentFromType]);
-
-  // Handle dropping components into a container
-  const handleContainerDrop = useCallback((e: React.DragEvent, containerId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Get the component type from dataTransfer
-    const componentType = e.dataTransfer.getData('componentType') || "Paragraphe";
-    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
-    
-    // Generate a unique ID for the new component
-    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-    
-    // Create a new component
-    const newComponent = createComponentFromType(componentType, uniqueId);
-    
-    // Find the container component and update its children
-    setComponents(prevComponents => {
-      return prevComponents.map(component => {
-        if (component.id === containerId) {
-          // Initialize the children array if it doesn't exist
-          if (!component.content) {
-            component.content = {};
-          }
-          if (!component.content.children) {
-            component.content.children = [];
-          }
-          
-          // Add the new component to the children array
-          return {
-            ...component,
-            content: {
-              ...component.content,
-              children: [...component.content.children, newComponent]
-            }
-          };
-        }
-        return component;
-      });
-    });
-    
-    // Select the newly added component
-    const event = new CustomEvent('component-selected', { 
-      detail: { id: uniqueId, type: componentType }
-    });
-    window.dispatchEvent(event);
-  }, [setComponents, createComponentFromType]);
-
-  // Handle dropping components into a grid column
-  const handleColumnDrop = useCallback((e: React.DragEvent, containerId: string, columnIndex: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Get the component type from dataTransfer
-    const componentType = e.dataTransfer.getData('componentType') || "Paragraphe";
-    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
-    
-    // Generate a unique ID for the new component
-    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-    
-    // Create a new component
-    const newComponent = createComponentFromType(componentType, uniqueId);
-    
-    // Find the grid component and update its columns
-    setComponents(prevComponents => {
-      return prevComponents.map(component => {
-        if (component.id === containerId) {
-          // For GridTwoCols
-          if (component.type === "GridTwoCols") {
-            if (!component.content) {
-              component.content = {};
-            }
-            
-            if (columnIndex === 0) {
-              // Left column
-              if (!component.content.leftChildren) {
-                component.content.leftChildren = [];
-              }
-              
-              return {
-                ...component,
-                content: {
-                  ...component.content,
-                  leftChildren: [...component.content.leftChildren, newComponent]
-                }
-              };
-            } else {
-              // Right column
-              if (!component.content.rightChildren) {
-                component.content.rightChildren = [];
-              }
-              
-              return {
-                ...component,
-                content: {
-                  ...component.content,
-                  rightChildren: [...component.content.rightChildren, newComponent]
-                }
-              };
-            }
-          } 
-          // For GridThreeCols
-          else if (component.type === "GridThreeCols") {
-            if (!component.content) {
-              component.content = {};
-            }
-            
-            if (!component.content.columns) {
-              // Initialize as an array with three empty arrays
-              component.content.columns = [[], [], []];
-            }
-            
-            // Create a copy of the columns array
-            const newColumns = [...component.content.columns];
-            
-            // Ensure the column at the specified index exists
-            if (!newColumns[columnIndex]) {
-              newColumns[columnIndex] = [];
-            }
-            
-            // Add the new component to the specified column
-            newColumns[columnIndex] = [...newColumns[columnIndex], newComponent];
-            
-            // Return the updated component
-            return {
-              ...component,
-              content: {
-                ...component.content,
-                columns: newColumns
-              }
-            };
-          }
-        }
-        return component;
-      }) as ComponentData[];  // Explicitly cast to ensure type compatibility
-    });
-    
-    // Select the newly added component
-    const event = new CustomEvent('component-selected', { 
-      detail: { id: uniqueId, type: componentType }
-    });
-    window.dispatchEvent(event);
-  }, [setComponents, createComponentFromType]);
-
-  // Create component data based on type
+  // Create component data based on type - moved this function to the top so it's defined before use
   const createComponentFromType = useCallback((componentType: string, uniqueId: string): ComponentData => {
     const newComponent: ComponentData = {
       id: uniqueId,
@@ -429,6 +220,216 @@ const Canvas: React.FC<CanvasProps> = ({
 
     return newComponent;
   }, []);
+  
+  // Handle drag over event
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDropzoneActive(true);
+  }, []);
+  
+  const handleDragLeave = useCallback(() => {
+    setDropzoneActive(false);
+  }, []);
+
+  // Handle drag over for between components
+  const handleBetweenDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setbetweenDropzoneActive(index);
+  }, []);
+  
+  const handleBetweenDragLeave = useCallback(() => {
+    setbetweenDropzoneActive(null);
+  }, []);
+
+  // Handle drop for between components
+  const handleBetweenDrop = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setbetweenDropzoneActive(null);
+    
+    // Get the component type from dataTransfer
+    const componentType = e.dataTransfer.getData('componentType') || "Hero";
+    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
+    
+    // Generate a truly unique ID using timestamp and random string
+    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    
+    // Create a new component with default content based on type
+    const newComponent = createComponentFromType(componentType, uniqueId);
+    
+    // Add component at specific index
+    if (addComponentBetween) {
+      addComponentBetween(newComponent, index);
+    }
+  }, [addComponentBetween, createComponentFromType]);
+  
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDropzoneActive(false);
+    
+    // Get the component type from dataTransfer
+    const componentType = e.dataTransfer.getData('componentType') || "Hero";
+    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
+    
+    // Generate a truly unique ID using timestamp and random string
+    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    
+    // Create a new component with default content based on type
+    const newComponent = createComponentFromType(componentType, uniqueId);
+    
+    // Add the new component
+    addComponent(newComponent);
+    
+    // Select the newly added component
+    const event = new CustomEvent('component-selected', { 
+      detail: { id: uniqueId, type: componentType }
+    });
+    window.dispatchEvent(event);
+  }, [addComponent, createComponentFromType]);
+
+  // Handle dropping components into a container
+  const handleContainerDrop = useCallback((e: React.DragEvent, containerId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Get the component type from dataTransfer
+    const componentType = e.dataTransfer.getData('componentType') || "Paragraphe";
+    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
+    
+    // Generate a unique ID for the new component
+    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    
+    // Create a new component
+    const newComponent = createComponentFromType(componentType, uniqueId);
+    
+    // Find the container component and update its children
+    setComponents(prevComponents => {
+      return prevComponents.map(component => {
+        if (component.id === containerId) {
+          // Initialize the children array if it doesn't exist
+          if (!component.content) {
+            component.content = {};
+          }
+          if (!component.content.children) {
+            component.content.children = [];
+          }
+          
+          // Add the new component to the children array
+          return {
+            ...component,
+            content: {
+              ...component.content,
+              children: [...component.content.children, newComponent]
+            }
+          };
+        }
+        return component;
+      }) as ComponentData[];  // Explicitly cast to ensure type compatibility
+    });
+    
+    // Select the newly added component
+    const event = new CustomEvent('component-selected', { 
+      detail: { id: uniqueId, type: componentType }
+    });
+    window.dispatchEvent(event);
+  }, [setComponents, createComponentFromType]);
+
+  // Handle dropping components into a grid column
+  const handleColumnDrop = useCallback((e: React.DragEvent, containerId: string, columnIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Get the component type from dataTransfer
+    const componentType = e.dataTransfer.getData('componentType') || "Paragraphe";
+    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
+    
+    // Generate a unique ID for the new component
+    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    
+    // Create a new component
+    const newComponent = createComponentFromType(componentType, uniqueId);
+    
+    // Find the grid component and update its columns
+    setComponents(prevComponents => {
+      return prevComponents.map(component => {
+        if (component.id === containerId) {
+          // For GridTwoCols
+          if (component.type === "GridTwoCols") {
+            if (!component.content) {
+              component.content = {};
+            }
+            
+            if (columnIndex === 0) {
+              // Left column
+              if (!component.content.leftChildren) {
+                component.content.leftChildren = [];
+              }
+              
+              return {
+                ...component,
+                content: {
+                  ...component.content,
+                  leftChildren: [...component.content.leftChildren, newComponent]
+                }
+              };
+            } else {
+              // Right column
+              if (!component.content.rightChildren) {
+                component.content.rightChildren = [];
+              }
+              
+              return {
+                ...component,
+                content: {
+                  ...component.content,
+                  rightChildren: [...component.content.rightChildren, newComponent]
+                }
+              };
+            }
+          } 
+          // For GridThreeCols
+          else if (component.type === "GridThreeCols") {
+            if (!component.content) {
+              component.content = {};
+            }
+            
+            if (!component.content.columns) {
+              // Initialize as an array with three empty arrays
+              component.content.columns = [[], [], []];
+            }
+            
+            // Create a copy of the columns array
+            const newColumns = [...component.content.columns];
+            
+            // Ensure the column at the specified index exists
+            if (!newColumns[columnIndex]) {
+              newColumns[columnIndex] = [];
+            }
+            
+            // Add the new component to the specified column
+            newColumns[columnIndex] = [...newColumns[columnIndex], newComponent];
+            
+            // Return the updated component
+            return {
+              ...component,
+              content: {
+                ...component.content,
+                columns: newColumns
+              }
+            };
+          }
+        }
+        return component;
+      }) as ComponentData[];  // Explicitly cast to ensure type compatibility
+    });
+    
+    // Select the newly added component
+    const event = new CustomEvent('component-selected', { 
+      detail: { id: uniqueId, type: componentType }
+    });
+    window.dispatchEvent(event);
+  }, [setComponents, createComponentFromType]);
 
   // Determine canvas width based on the selected screen size
   const getCanvasWidthClass = useCallback(() => {
