@@ -9,10 +9,10 @@ interface FlexboxBlockProps {
     title?: string;
     subtitle?: string;
     children?: ComponentData[];
-    direction?: 'row' | 'column';
+    direction?: string; // Changed from 'row' | 'column' to string to match ComponentData
     wrap?: boolean;
-    justifyContent?: 'start' | 'end' | 'center' | 'between' | 'around' | 'evenly';
-    alignItems?: 'start' | 'end' | 'center' | 'baseline' | 'stretch';
+    justifyContent?: string; // Changed from specific values to string
+    alignItems?: string; // Changed from specific values to string
     gap?: string;
   };
   style?: {
@@ -44,10 +44,26 @@ const FlexboxBlock: React.FC<FlexboxBlockProps> = ({ content, style }) => {
   
   // Memoize the flex class
   const flexClass = useMemo(() => {
+    // Handle direction safely - default to 'flex-row' if not 'column'
     const direction = content?.direction === 'column' ? 'flex-col' : 'flex-row';
     const wrap = content?.wrap ? 'flex-wrap' : 'flex-nowrap';
-    const justify = content?.justifyContent ? `justify-${content.justifyContent}` : 'justify-start';
-    const align = content?.alignItems ? `items-${content.alignItems}` : 'items-start';
+    
+    // Handle justifyContent safely with valid Tailwind values
+    let justify = 'justify-start';
+    if (content?.justifyContent) {
+      if (['start', 'end', 'center', 'between', 'around', 'evenly'].includes(content.justifyContent)) {
+        justify = `justify-${content.justifyContent}`;
+      }
+    }
+    
+    // Handle alignItems safely with valid Tailwind values
+    let align = 'items-start';
+    if (content?.alignItems) {
+      if (['start', 'end', 'center', 'baseline', 'stretch'].includes(content.alignItems)) {
+        align = `items-${content.alignItems}`;
+      }
+    }
+    
     const gap = content?.gap ? `gap-${content.gap}` : 'gap-4';
     
     return cn('flex', direction, wrap, justify, align, gap);
