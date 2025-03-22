@@ -22,9 +22,11 @@ interface FlexboxBlockProps {
     rounded?: boolean;
     shadow?: boolean;
   };
+  isSelected?: boolean;
+  onDrop?: (e: React.DragEvent) => void;
 }
 
-const FlexboxBlock: React.FC<FlexboxBlockProps> = ({ content, style }) => {
+const FlexboxBlock: React.FC<FlexboxBlockProps> = ({ content, style, isSelected, onDrop }) => {
   // Memoize the container class to prevent recalculations
   const containerClass = useMemo(() => {
     const bgClass = style?.backgroundColor ? `bg-${style.backgroundColor}` : 'bg-white';
@@ -75,6 +77,21 @@ const FlexboxBlock: React.FC<FlexboxBlockProps> = ({ content, style }) => {
     content?.gap
   ]);
   
+  // Handle drop event for Flexbox to accept children components
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (onDrop) {
+      onDrop(e);
+    }
+  };
+  
   return (
     <div className={containerClass}>
       {(content?.title || content?.subtitle) && (
@@ -84,7 +101,11 @@ const FlexboxBlock: React.FC<FlexboxBlockProps> = ({ content, style }) => {
         </div>
       )}
       
-      <div className={flexClass}>
+      <div 
+        className={`${flexClass} border ${isSelected ? 'border-builder-blue' : 'border-transparent'}`}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
         {content?.children && content.children.length > 0 ? (
           content.children.map((child, index) => (
             <div key={child.id || index} className="flex-child">

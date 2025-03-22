@@ -19,9 +19,10 @@ interface ContainerBlockProps {
     shadow?: boolean;
   };
   isSelected?: boolean;
+  onDrop?: (e: React.DragEvent) => void;
 }
 
-const ContainerBlock: React.FC<ContainerBlockProps> = ({ content, style, isSelected }) => {
+const ContainerBlock: React.FC<ContainerBlockProps> = ({ content, style, isSelected, onDrop }) => {
   // Memoize the container class to prevent recalculations
   const containerClass = useMemo(() => {
     const bgClass = style?.backgroundColor ? `bg-${style.backgroundColor}` : 'bg-white';
@@ -49,6 +50,21 @@ const ContainerBlock: React.FC<ContainerBlockProps> = ({ content, style, isSelec
     style?.shadow
   ]);
   
+  // Handle drag over and drop events
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (onDrop) {
+      onDrop(e);
+    }
+  };
+  
   return (
     <div className={containerClass}>
       {(content?.title || content?.subtitle) && (
@@ -57,13 +73,18 @@ const ContainerBlock: React.FC<ContainerBlockProps> = ({ content, style, isSelec
           {content?.subtitle && <p className="text-gray-600">{content.subtitle}</p>}
         </div>
       )}
-      <div className="container-children">
-        {content?.children && content.children.map((child, index) => (
-          <div key={child.id || index} className="mb-4">
-            <BlockRenderer component={child} isSelected={false} />
-          </div>
-        ))}
-        {!content?.children && (
+      <div 
+        className={`container-children border ${isSelected ? 'border-builder-blue' : 'border-transparent'}`}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
+        {content?.children && content.children.length > 0 ? (
+          content.children.map((child, index) => (
+            <div key={child.id || index} className="mb-4">
+              <BlockRenderer component={child} isSelected={false} />
+            </div>
+          ))
+        ) : (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-400">
             Glissez et déposez des composants ici
           </div>

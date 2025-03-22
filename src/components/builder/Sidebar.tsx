@@ -207,6 +207,20 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
   const handleDragStart = (e: React.DragEvent, componentType: string, variant: string = "") => {
     e.dataTransfer.setData('componentType', componentType);
     e.dataTransfer.setData('componentVariant', variant);
+    
+    // Add a visual indicator for drag operation
+    const ghostImage = document.createElement('div');
+    ghostImage.className = 'bg-blue-500 text-white p-2 rounded';
+    ghostImage.innerText = componentType;
+    document.body.appendChild(ghostImage);
+    ghostImage.style.position = 'absolute';
+    ghostImage.style.top = '-1000px';
+    
+    e.dataTransfer.setDragImage(ghostImage, 0, 0);
+    
+    setTimeout(() => {
+      document.body.removeChild(ghostImage);
+    }, 0);
   };
 
   const heroVariants = [
@@ -399,38 +413,38 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
                       onDragStart={handleDragStart}
                     />
                     <ComponentPreview 
-                      title="Section Cartes" 
+                      title="Testimonial" 
                       icon={<CardsIcon />} 
-                      onClick={() => showVariantsFor("Cards")}
-                      componentType="Cards"
+                      onClick={() => handleComponentSelect("Testimonial")}
+                      componentType="Testimonial"
                       onDragStart={handleDragStart}
                     />
                     <ComponentPreview 
-                      title="Section Fonctionnalités" 
+                      title="Fonctionnalités" 
                       icon={<FeaturesIcon />} 
-                      onClick={() => showVariantsFor("Features")}
+                      onClick={() => handleComponentSelect("Features")}
                       componentType="Features"
                       onDragStart={handleDragStart}
                     />
                     <ComponentPreview 
-                      title="Galerie" 
+                      title="Pricing" 
                       icon={<CardsIcon />}
-                      onClick={() => handleComponentSelect("Galerie")}
-                      componentType="Galerie"
+                      onClick={() => handleComponentSelect("Pricing")}
+                      componentType="Pricing"
                       onDragStart={handleDragStart}
                     />
                     <ComponentPreview 
-                      title="Formulaire d'inscription" 
+                      title="FAQ" 
                       icon={<FeaturesIcon />}
-                      onClick={() => handleComponentSelect("Formulaire d'inscription")}
-                      componentType="Formulaire d'inscription"
+                      onClick={() => handleComponentSelect("FAQ")}
+                      componentType="FAQ"
                       onDragStart={handleDragStart}
                     />
                     <ComponentPreview 
-                      title="Formulaire de contact" 
+                      title="CTA" 
                       icon={<FeaturesIcon />}
-                      onClick={() => handleComponentSelect("Formulaire de contact")}
-                      componentType="Formulaire de contact"
+                      onClick={() => handleComponentSelect("CTA")}
+                      componentType="CTA"
                       onDragStart={handleDragStart}
                     />
                   </div>
@@ -450,15 +464,15 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
                     <ComponentPreview 
                       title="Grille 2 cols" 
                       icon={<CardsIcon />}
-                      onClick={() => handleComponentSelect("Grille 2 cols")}
-                      componentType="Grille 2 cols"
+                      onClick={() => handleComponentSelect("GridTwoCols")}
+                      componentType="GridTwoCols"
                       onDragStart={handleDragStart}
                     />
                     <ComponentPreview 
                       title="Grille 3 cols" 
                       icon={<CardsIcon />}
-                      onClick={() => handleComponentSelect("Grille 3 cols")}
-                      componentType="Grille 3 cols"
+                      onClick={() => handleComponentSelect("GridThreeCols")}
+                      componentType="GridThreeCols"
                       onDragStart={handleDragStart}
                     />
                     <ComponentPreview 
@@ -473,13 +487,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
                 
                 <SidebarSection title="Basiques" defaultOpen={true}>
                   <div className="grid grid-cols-2 gap-2">
-                    <ComponentPreview 
-                      title="Titre" 
-                      icon={<HeadingIcon />}
-                      onClick={() => handleComponentSelect("Titre")}
-                      componentType="Titre"
-                      onDragStart={handleDragStart}
-                    />
                     <ComponentPreview 
                       title="Paragraphe" 
                       icon={<ParagraphIcon />}

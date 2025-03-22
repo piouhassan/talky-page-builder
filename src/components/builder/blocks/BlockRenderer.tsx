@@ -20,21 +20,35 @@ import CTABlock from './CTABlock';
 interface BlockRendererProps {
   component: ComponentData;
   isSelected: boolean;
+  onContainerDrop?: (e: React.DragEvent, containerId: string) => void;
+  onColumnDrop?: (e: React.DragEvent, containerId: string, columnIndex: number) => void;
 }
 
-const BlockRenderer: React.FC<BlockRendererProps> = ({ component, isSelected }) => {
-  const { type, content, style } = component;
+const BlockRenderer: React.FC<BlockRendererProps> = ({ component, isSelected, onContainerDrop, onColumnDrop }) => {
+  const { type, content, style, id } = component;
+  
+  const handleContainerDrop = (e: React.DragEvent) => {
+    if (onContainerDrop && id) {
+      onContainerDrop(e, id);
+    }
+  };
+  
+  const handleColumnDrop = (e: React.DragEvent, columnIndex: number) => {
+    if (onColumnDrop && id) {
+      onColumnDrop(e, id, columnIndex);
+    }
+  };
   
   switch(type) {
     // Layout blocks
     case "Container":
-      return <ContainerBlock content={content} style={style} isSelected={isSelected} />;
+      return <ContainerBlock content={content} style={style} isSelected={isSelected} onDrop={handleContainerDrop} />;
     case "GridTwoCols":
-      return <GridTwoColsBlock content={content} style={style} />;
+      return <GridTwoColsBlock content={content} style={style} isSelected={isSelected} />;
     case "GridThreeCols":
-      return <GridThreeColsBlock content={content} style={style} />;
+      return <GridThreeColsBlock content={content} style={style} isSelected={isSelected} onColumnDrop={handleColumnDrop} />;
     case "Flexbox":
-      return <FlexboxBlock content={content} style={style} />;
+      return <FlexboxBlock content={content} style={style} isSelected={isSelected} onDrop={handleContainerDrop} />;
       
     // Content blocks  
     case "Hero":

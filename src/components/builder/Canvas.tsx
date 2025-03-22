@@ -96,6 +96,109 @@ const Canvas: React.FC<CanvasProps> = ({
     window.dispatchEvent(event);
   }, [addComponent]);
 
+  // Handle dropping components into a container
+  const handleContainerDrop = useCallback((e: React.DragEvent, containerId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Get the component type from dataTransfer
+    const componentType = e.dataTransfer.getData('componentType') || "Paragraphe";
+    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
+    
+    // Generate a unique ID for the new component
+    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    
+    // Create a new component
+    const newComponent = createComponentFromType(componentType, uniqueId);
+    
+    // Find the container component and update its children
+    setComponents(prevComponents => {
+      return prevComponents.map(component => {
+        if (component.id === containerId) {
+          // Initialize the children array if it doesn't exist
+          if (!component.content) {
+            component.content = {};
+          }
+          if (!component.content.children) {
+            component.content.children = [];
+          }
+          
+          // Add the new component to the children array
+          return {
+            ...component,
+            content: {
+              ...component.content,
+              children: [...component.content.children, newComponent]
+            }
+          };
+        }
+        return component;
+      });
+    });
+    
+    // Select the newly added component
+    const event = new CustomEvent('component-selected', { 
+      detail: { id: uniqueId, type: componentType }
+    });
+    window.dispatchEvent(event);
+  }, [setComponents]);
+
+  // Handle dropping components into a grid column
+  const handleColumnDrop = useCallback((e: React.DragEvent, containerId: string, columnIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Get the component type from dataTransfer
+    const componentType = e.dataTransfer.getData('componentType') || "Paragraphe";
+    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
+    
+    // Generate a unique ID for the new component
+    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    
+    // Create a new component
+    const newComponent = createComponentFromType(componentType, uniqueId);
+    
+    // Find the grid component and update its columns
+    setComponents(prevComponents => {
+      return prevComponents.map(component => {
+        if (component.id === containerId) {
+          // Initialize the columns array if it doesn't exist
+          if (!component.content) {
+            component.content = {};
+          }
+          if (!component.content.columns) {
+            component.content.columns = [[], [], []];
+          }
+          
+          // Create a copy of the columns array
+          const newColumns = [...component.content.columns];
+          
+          // Add the new component to the specified column
+          if (!newColumns[columnIndex]) {
+            newColumns[columnIndex] = [];
+          }
+          newColumns[columnIndex] = [...newColumns[columnIndex], newComponent];
+          
+          // Return the updated component
+          return {
+            ...component,
+            content: {
+              ...component.content,
+              columns: newColumns
+            }
+          };
+        }
+        return component;
+      });
+    });
+    
+    // Select the newly added component
+    const event = new CustomEvent('component-selected', { 
+      detail: { id: uniqueId, type: componentType }
+    });
+    window.dispatchEvent(event);
+  }, [setComponents]);
+
   // Create component data based on type
   const createComponentFromType = useCallback((componentType: string, uniqueId: string): ComponentData => {
     const newComponent: ComponentData = {
@@ -436,7 +539,12 @@ const Canvas: React.FC<CanvasProps> = ({
                     className={`relative border-2 ${selectedComponentId === component.id ? 'border-builder-blue' : 'border-transparent'} hover:border-builder-blue group`}
                     onClick={(e) => handleComponentClick(e, component.id, component.type)}
                   >
-                    <BlockRenderer component={component} isSelected={selectedComponentId === component.id} />
+                    <BlockRenderer 
+                      component={component} 
+                      isSelected={selectedComponentId === component.id}
+                      onContainerDrop={handleContainerDrop}
+                      onColumnDrop={handleColumnDrop}
+                    />
                     
                     {/* Component action buttons */}
                     <div className="absolute top-2 right-2 flex space-x-1 bg-white border border-gray-200 rounded opacity-0 group-hover:opacity-100 transition-opacity">

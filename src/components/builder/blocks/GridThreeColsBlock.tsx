@@ -18,9 +18,11 @@ interface GridThreeColsBlockProps {
     rounded?: boolean;
     shadow?: boolean;
   };
+  isSelected?: boolean;
+  onColumnDrop?: (e: React.DragEvent, columnIndex: number) => void;
 }
 
-const GridThreeColsBlock: React.FC<GridThreeColsBlockProps> = ({ content, style }) => {
+const GridThreeColsBlock: React.FC<GridThreeColsBlockProps> = ({ content, style, isSelected, onColumnDrop }) => {
   // Memoize the container class to prevent recalculations
   const containerClass = useMemo(() => {
     const bgClass = style?.backgroundColor ? `bg-${style.backgroundColor}` : 'bg-white';
@@ -44,6 +46,21 @@ const GridThreeColsBlock: React.FC<GridThreeColsBlockProps> = ({ content, style 
     return cn('grid grid-cols-1 md:grid-cols-3', gapClass);
   }, [content?.gap]);
   
+  // Handle drag over and drop events for each column
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  
+  const handleDrop = (e: React.DragEvent, columnIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (onColumnDrop) {
+      onColumnDrop(e, columnIndex);
+    }
+  };
+  
   return (
     <div className={containerClass}>
       {(content?.title || content?.subtitle) && (
@@ -56,7 +73,12 @@ const GridThreeColsBlock: React.FC<GridThreeColsBlockProps> = ({ content, style 
       <div className={gridClass}>
         {/* Render three columns */}
         {[0, 1, 2].map((colIndex) => (
-          <div key={colIndex} className="grid-col">
+          <div 
+            key={colIndex} 
+            className={`grid-col border ${isSelected ? 'border-builder-blue' : 'border-transparent'}`}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, colIndex)}
+          >
             {content?.columns && content.columns[colIndex] && content.columns[colIndex].length > 0 ? (
               content.columns[colIndex].map((child, index) => (
                 <div key={child.id || index} className="mb-4">
