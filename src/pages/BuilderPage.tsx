@@ -21,6 +21,12 @@ const BuilderPage = () => {
     setShowSaveDialog(true);
   };
   
+  // Function to copy code to clipboard
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("JSON copié dans le presse-papier");
+  };
+  
   return (
     <>
       <BuilderLayout onSaveConfirm={handleSave} />
@@ -50,13 +56,7 @@ const BuilderPage = () => {
             </Button>
             <Button 
               type="button"
-              onClick={() => {
-                // Copy to clipboard
-                if (savedJson) {
-                  navigator.clipboard.writeText(savedJson);
-                  toast.success("JSON copié dans le presse-papier");
-                }
-              }}
+              onClick={() => savedJson && copyToClipboard(savedJson)}
             >
               Copier JSON
             </Button>

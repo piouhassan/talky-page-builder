@@ -6,8 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronUp, ChevronDown, AlignLeft, AlignCenter, AlignRight, AlignJustify } from "lucide-react";
+import { ChevronUp, ChevronDown, AlignLeft, AlignCenter, AlignRight, AlignJustify, Upload } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { ComponentData } from './BuilderLayout';
 
 interface PropertySectionProps {
@@ -95,6 +96,33 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
       [field]: value
     }));
   };
+
+  const handleMediaUpload = () => {
+    // Simulate a file input click
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (target.files && target.files[0]) {
+        const file = target.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const imageUrl = e.target?.result as string;
+          // Update different fields based on component type
+          if (selectedComponent === 'Hero') {
+            handleContentChange('imageUrl', imageUrl);
+          } else if (selectedComponent === 'Image') {
+            handleContentChange('imageUrl', imageUrl);
+          } else if (selectedComponent === 'Testimonial') {
+            handleContentChange('avatarUrl', imageUrl);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    input.click();
+  };
   
   const renderContentTab = () => {
     if (!selectedComponent || !componentData) return null;
@@ -136,6 +164,30 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                     onChange={(e) => handleContentChange('buttonText', e.target.value)}
                     className="border-gray-200"
                   />
+                </div>
+              </div>
+            </PropertySection>
+            <PropertySection title="Média">
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">IMAGE</Label>
+                  {localContent.imageUrl && (
+                    <div className="mb-2">
+                      <img 
+                        src={localContent.imageUrl} 
+                        alt="Preview" 
+                        className="w-full h-auto rounded-md mb-2"
+                      />
+                    </div>
+                  )}
+                  <Button 
+                    variant="outline" 
+                    className="w-full flex items-center justify-center"
+                    onClick={handleMediaUpload}
+                  >
+                    <Upload size={16} className="mr-2" />
+                    Téléverser une image
+                  </Button>
                 </div>
               </div>
             </PropertySection>
@@ -206,6 +258,156 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                     onChange={(e) => handleContentChange('buttonText', e.target.value)}
                     className="border-gray-200"
                   />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">URL</Label>
+                  <Input
+                    value={localContent.url || ""}
+                    onChange={(e) => handleContentChange('url', e.target.value)}
+                    className="border-gray-200"
+                    placeholder="https://exemple.com"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">VARIANTE</Label>
+                  <Select 
+                    value={localContent.variant || "default"} 
+                    onValueChange={(val) => handleContentChange('variant', val)}
+                  >
+                    <SelectTrigger className="h-9 border-gray-200">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="default">Par défaut</SelectItem>
+                      <SelectItem value="outline">Contour</SelectItem>
+                      <SelectItem value="ghost">Fantôme</SelectItem>
+                      <SelectItem value="link">Lien</SelectItem>
+                      <SelectItem value="secondary">Secondaire</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">TAILLE</Label>
+                  <Select 
+                    value={localContent.size || "default"} 
+                    onValueChange={(val) => handleContentChange('size', val)}
+                  >
+                    <SelectTrigger className="h-9 border-gray-200">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="default">Standard</SelectItem>
+                      <SelectItem value="sm">Petit</SelectItem>
+                      <SelectItem value="lg">Grand</SelectItem>
+                      <SelectItem value="icon">Icône</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </PropertySection>
+          </>
+        );
+      
+      case "Image":
+        return (
+          <>
+            <PropertySection title="Image">
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">IMAGE</Label>
+                  {localContent.imageUrl && (
+                    <div className="mb-2">
+                      <img 
+                        src={localContent.imageUrl} 
+                        alt="Preview" 
+                        className="w-full h-auto rounded-md mb-2"
+                      />
+                    </div>
+                  )}
+                  <Button 
+                    variant="outline" 
+                    className="w-full flex items-center justify-center"
+                    onClick={handleMediaUpload}
+                  >
+                    <Upload size={16} className="mr-2" />
+                    Téléverser une image
+                  </Button>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">TEXTE ALTERNATIF</Label>
+                  <Input
+                    value={localContent.alt || ""}
+                    onChange={(e) => handleContentChange('alt', e.target.value)}
+                    className="border-gray-200"
+                    placeholder="Description de l'image"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">LÉGENDE</Label>
+                  <Input
+                    value={localContent.caption || ""}
+                    onChange={(e) => handleContentChange('caption', e.target.value)}
+                    className="border-gray-200"
+                    placeholder="Légende sous l'image"
+                  />
+                </div>
+              </div>
+            </PropertySection>
+          </>
+        );
+        
+      case "Testimonial":
+        return (
+          <>
+            <PropertySection title="Contenu">
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">CITATION</Label>
+                  <Textarea
+                    value={localContent.quote || ""}
+                    onChange={(e) => handleContentChange('quote', e.target.value)}
+                    className="border-gray-200"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">AUTEUR</Label>
+                  <Input
+                    value={localContent.author || ""}
+                    onChange={(e) => handleContentChange('author', e.target.value)}
+                    className="border-gray-200"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">RÔLE/FONCTION</Label>
+                  <Input
+                    value={localContent.role || ""}
+                    onChange={(e) => handleContentChange('role', e.target.value)}
+                    className="border-gray-200"
+                  />
+                </div>
+              </div>
+            </PropertySection>
+            <PropertySection title="Image">
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">AVATAR</Label>
+                  {localContent.avatarUrl && (
+                    <div className="mb-2 flex justify-center">
+                      <img 
+                        src={localContent.avatarUrl} 
+                        alt="Avatar" 
+                        className="w-16 h-16 rounded-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <Button 
+                    variant="outline" 
+                    className="w-full flex items-center justify-center"
+                    onClick={handleMediaUpload}
+                  >
+                    <Upload size={16} className="mr-2" />
+                    Téléverser un avatar
+                  </Button>
                 </div>
               </div>
             </PropertySection>
@@ -324,8 +526,67 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 ></div>
               </div>
             </div>
+            
+            {selectedComponent === 'Bouton' && (
+              <div>
+                <Label className="text-xs text-gray-500 mb-1 block">COULEUR DU BOUTON</Label>
+                <div className="grid grid-cols-5 gap-1">
+                  <div
+                    className={`w-full aspect-square bg-builder-blue rounded-md cursor-pointer ${
+                      localStyle.buttonColor === 'builder-blue' ? 'ring-2 ring-builder-blue' : ''
+                    }`}
+                    onClick={() => handleStyleChange('buttonColor', 'builder-blue')}
+                  ></div>
+                  <div
+                    className={`w-full aspect-square bg-red-500 rounded-md cursor-pointer ${
+                      localStyle.buttonColor === 'red-500' ? 'ring-2 ring-builder-blue' : ''
+                    }`}
+                    onClick={() => handleStyleChange('buttonColor', 'red-500')}
+                  ></div>
+                  <div
+                    className={`w-full aspect-square bg-green-500 rounded-md cursor-pointer ${
+                      localStyle.buttonColor === 'green-500' ? 'ring-2 ring-builder-blue' : ''
+                    }`}
+                    onClick={() => handleStyleChange('buttonColor', 'green-500')}
+                  ></div>
+                  <div
+                    className={`w-full aspect-square bg-yellow-500 rounded-md cursor-pointer ${
+                      localStyle.buttonColor === 'yellow-500' ? 'ring-2 ring-builder-blue' : ''
+                    }`}
+                    onClick={() => handleStyleChange('buttonColor', 'yellow-500')}
+                  ></div>
+                  <div
+                    className={`w-full aspect-square bg-purple-500 rounded-md cursor-pointer ${
+                      localStyle.buttonColor === 'purple-500' ? 'ring-2 ring-builder-blue' : ''
+                    }`}
+                    onClick={() => handleStyleChange('buttonColor', 'purple-500')}
+                  ></div>
+                </div>
+              </div>
+            )}
           </div>
         </PropertySection>
+        
+        {selectedComponent === 'Bouton' && (
+          <PropertySection title="Apparence">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-gray-500">ARRONDI</Label>
+                <Switch 
+                  checked={!!localStyle.rounded}
+                  onCheckedChange={(checked) => handleStyleChange('rounded', checked)}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-gray-500">OMBRE</Label>
+                <Switch 
+                  checked={!!localStyle.shadow}
+                  onCheckedChange={(checked) => handleStyleChange('shadow', checked)}
+                />
+              </div>
+            </div>
+          </PropertySection>
+        )}
       </>
     );
   };

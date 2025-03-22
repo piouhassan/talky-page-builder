@@ -7,4 +7,5 @@ export interface HeaderProps {
   onUndo?: () => void;
   onRedo?: () => void;
   onSave?: () => void;
+  onMediaLibraryOpen?: () => void;
 }

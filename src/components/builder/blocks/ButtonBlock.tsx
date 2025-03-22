@@ -7,11 +7,16 @@ interface ButtonBlockProps {
   content?: {
     buttonText?: string;
     url?: string;
+    variant?: 'default' | 'outline' | 'ghost' | 'link' | 'secondary';
+    size?: 'default' | 'sm' | 'lg' | 'icon';
   };
   style?: {
     backgroundColor?: string;
     padding?: string;
     textAlign?: 'left' | 'center' | 'right' | 'justify';
+    buttonColor?: string;
+    rounded?: boolean;
+    shadow?: boolean;
   };
 }
 
@@ -25,10 +30,23 @@ const ButtonBlock: React.FC<ButtonBlockProps> = ({ content, style }) => {
     return cn(bgClass, paddingClass, alignClass);
   };
   
+  // Prepare button classes
+  const getButtonClass = () => {
+    const baseClass = 'px-6 py-2';
+    const colorClass = style?.buttonColor ? `bg-${style?.buttonColor} hover:bg-${style?.buttonColor}/90` : 'bg-builder-blue hover:bg-builder-dark-blue';
+    const textClass = 'text-white';
+    const roundedClass = style?.rounded ? 'rounded-full' : 'rounded-md';
+    const shadowClass = style?.shadow ? 'shadow-md' : '';
+    
+    return cn(baseClass, colorClass, textClass, roundedClass, shadowClass);
+  };
+  
   return (
     <div className={getContainerClass()}>
       <Button 
-        className="bg-builder-blue hover:bg-builder-dark-blue text-white px-6 py-2 rounded-md"
+        className={getButtonClass()}
+        variant={content?.variant || 'default'}
+        size={content?.size || 'default'}
         onClick={() => {
           if (content?.url) {
             window.open(content.url, '_blank');
