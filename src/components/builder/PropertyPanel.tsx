@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChevronUp, ChevronDown, AlignLeft, AlignCenter, AlignRight, AlignJustify, Upload } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ComponentData } from './BuilderLayout';
 
 interface PropertySectionProps {
@@ -55,12 +56,22 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
 }) => {
   const [localContent, setLocalContent] = useState<any>({});
   const [localStyle, setLocalStyle] = useState<any>({});
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   
   // Initialize local state when component data changes
   useEffect(() => {
     if (componentData) {
-      setLocalContent(componentData.content || {});
-      setLocalStyle(componentData.style || {});
+      // Set loading state when component changes
+      setIsLoading(true);
+      
+      // Small delay to simulate transition and prevent UI conflicts
+      const timer = setTimeout(() => {
+        setLocalContent(componentData.content || {});
+        setLocalStyle(componentData.style || {});
+        setIsLoading(false);
+      }, 300);
+      
+      return () => clearTimeout(timer);
     } else {
       setLocalContent({});
       setLocalStyle({});
@@ -129,8 +140,51 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
     }
   };
   
+  // Loading skeletons for the panel
+  const renderLoadingSkeletons = () => {
+    return (
+      <>
+        <PropertySection title="Chargement">
+          <div className="space-y-3">
+            <div>
+              <Skeleton className="h-4 w-20 mb-2" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div>
+              <Skeleton className="h-4 w-24 mb-2" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div>
+              <Skeleton className="h-4 w-28 mb-2" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+          </div>
+        </PropertySection>
+        <PropertySection title="Propriétés">
+          <div className="space-y-3">
+            <div>
+              <Skeleton className="h-4 w-32 mb-2" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="flex space-x-2">
+              <Skeleton className="h-8 w-8" />
+              <Skeleton className="h-8 w-8" />
+              <Skeleton className="h-8 w-8" />
+              <Skeleton className="h-8 w-8" />
+            </div>
+          </div>
+        </PropertySection>
+      </>
+    );
+  };
+  
   const renderContentTab = () => {
     if (!selectedComponent || !componentData) return null;
+    
+    // Show loading skeleton while component data is loading
+    if (isLoading) {
+      return renderLoadingSkeletons();
+    }
     
     switch (selectedComponent) {
       case "Hero":
@@ -429,6 +483,11 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
   };
   
   const renderStyleTab = () => {
+    // Show loading skeleton while component data is loading
+    if (isLoading) {
+      return renderLoadingSkeletons();
+    }
+    
     return (
       <>
         <PropertySection title="Alignement">
