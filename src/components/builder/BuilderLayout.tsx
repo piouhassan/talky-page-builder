@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
@@ -27,11 +28,29 @@ export interface ComponentData {
       icon?: string;
     }>;
     url?: string;
+    variant?: 'default' | 'outline' | 'ghost' | 'link' | 'secondary';
+    size?: 'default' | 'sm' | 'lg' | 'icon';
+    children?: ComponentData[];
+    leftChildren?: ComponentData[];
+    rightChildren?: ComponentData[];
+    columns?: [ComponentData[], ComponentData[], ComponentData[]];
+    direction?: string;
+    wrap?: boolean;
+    justifyContent?: string;
+    gap?: string;
+    secondaryButtonText?: string;
+    secondaryButtonUrl?: string;
+    buttonUrl?: string;
   };
   style?: {
     backgroundColor?: string;
     padding?: string;
     textAlign?: 'left' | 'center' | 'right' | 'justify';
+    buttonColor?: string;
+    rounded?: boolean;
+    shadow?: boolean;
+    maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+    layout?: 'center' | 'split' | 'banner';
   };
 }
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { XCircle, Copy, ArrowUp, ArrowDown, Plus } from "lucide-react";
