@@ -18,6 +18,7 @@ const BuilderPage = () => {
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [savedJson, setSavedJson] = useState<string | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [allComponents, setAllComponents] = useState<any[]>([]);
   
   // Use useCallback to prevent unnecessary re-renders
   const handleSave = useCallback((pageData: any) => {
@@ -46,11 +47,17 @@ const BuilderPage = () => {
     window.dispatchEvent(event);
   }, []);
   
+  // Callback to get all components from BuilderLayout
+  const handleComponentsUpdate = useCallback((components: any[]) => {
+    setAllComponents(components);
+  }, []);
+  
   return (
     <>
       <BuilderLayout 
         onSaveConfirm={handleSave} 
         onMediaLibraryOpen={handleOpenMediaLibrary}
+        onComponentsUpdate={handleComponentsUpdate}
       />
       
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
@@ -90,6 +97,7 @@ const BuilderPage = () => {
         open={showMediaLibrary} 
         onOpenChange={setShowMediaLibrary}
         onSelectImage={handleSelectImage}
+        allowMultiple={true}
       />
     </>
   );
