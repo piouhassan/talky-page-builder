@@ -25,6 +25,7 @@ interface MediaLibraryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelectImage: (imageUrl: string) => void;
+  allowMultiple?: boolean;
 }
 
 // Images de démonstration
@@ -40,7 +41,8 @@ const demoImages = [
 const MediaLibraryDialog: React.FC<MediaLibraryDialogProps> = ({ 
   open, 
   onOpenChange,
-  onSelectImage
+  onSelectImage,
+  allowMultiple = false
 }) => {
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState("");
@@ -159,7 +161,11 @@ const MediaLibraryDialog: React.FC<MediaLibraryDialogProps> = ({
                       className="aspect-video relative overflow-hidden rounded-md border border-gray-200 cursor-pointer hover:border-blue-500 transition-colors"
                       onClick={() => {
                         onSelectImage(image);
-                        onOpenChange(false);
+                        if (!allowMultiple) {
+                          onOpenChange(false);
+                        } else {
+                          toast.success('Image sélectionnée');
+                        }
                       }}
                     >
                       <img 
@@ -178,7 +184,11 @@ const MediaLibraryDialog: React.FC<MediaLibraryDialogProps> = ({
                       className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100 cursor-pointer"
                       onClick={() => {
                         onSelectImage(image);
-                        onOpenChange(false);
+                        if (!allowMultiple) {
+                          onOpenChange(false);
+                        } else {
+                          toast.success('Image sélectionnée');
+                        }
                       }}
                     >
                       <div className="w-12 h-12 relative overflow-hidden rounded-md border border-gray-200">

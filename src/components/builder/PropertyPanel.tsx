@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -122,7 +123,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
     }
   }, [localStyle, selectedComponentId, updateComponentData]);
   
-  const handleContentChange = (field: string, value: string) => {
+  const handleContentChange = (field: string, value: any) => {
     // Direct update without loading state
     setLocalContent(prev => ({
       ...prev,
@@ -152,6 +153,10 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
           handleContentChange('imageUrl', imageUrl);
         } else if (componentData?.type === 'Testimonial') {
           handleContentChange('avatarUrl', imageUrl);
+        } else if (componentData?.type === 'Gallery') {
+          // For gallery, we need to add to an array of images
+          const currentImages = localContent.images || [];
+          handleContentChange('images', [...currentImages, imageUrl]);
         }
       }
     };
@@ -161,7 +166,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
     return () => {
       window.removeEventListener('media-selected', handleMediaSelected);
     };
-  }, [componentData?.type]);
+  }, [componentData?.type, localContent.images]);
 
   const handleMediaUpload = () => {
     if (onMediaLibraryOpen) {

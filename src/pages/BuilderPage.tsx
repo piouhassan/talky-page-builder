@@ -13,14 +13,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import MediaLibraryDialog from '@/components/builder/MediaLibraryDialog';
 
-// Define the proper MediaLibraryDialog props interface
-interface ExtendedMediaLibraryProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSelectImage: (imageUrl: string) => void;
-  allowMultiple?: boolean;
-}
-
 const BuilderPage = () => {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
@@ -101,7 +93,6 @@ const BuilderPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Cast MediaLibraryDialog props to any as a workaround if needed */}
       <MediaLibraryDialog 
         open={showMediaLibrary} 
         onOpenChange={setShowMediaLibrary}
