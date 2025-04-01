@@ -2,7 +2,7 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
 
-interface FooterBlockProps {
+interface FooterLayoutProps {
   content?: {
     title?: string;
     subtitle?: string;
@@ -15,7 +15,7 @@ interface FooterBlockProps {
   };
 }
 
-const FooterBlock: React.FC<FooterBlockProps> = ({ content, style }) => {
+const FooterLayout: React.FC<FooterLayoutProps> = ({ content, style }) => {
   // Prepare container classes with proper tailwind classes
   const getContainerClass = () => {
     const bgClass = style?.backgroundColor ? `bg-${style.backgroundColor}` : 'bg-gray-100';
@@ -55,4 +55,4 @@ const FooterBlock: React.FC<FooterBlockProps> = ({ content, style }) => {
   );
 };
 
-export default FooterBlock;
+export default FooterLayout;

@@ -7,8 +7,6 @@ import ParagraphBlock from './ParagraphBlock';
 import ButtonBlock from './ButtonBlock';
 import ImageBlock from './ImageBlock';
 import TestimonialBlock from './TestimonialBlock';
-import NavbarBlock from './NavbarBlock';
-import FooterBlock from './FooterBlock';
 import PricingBlock from './PricingBlock';
 import FAQBlock from './FAQBlock';
 import CTABlock from './CTABlock';
@@ -18,7 +16,9 @@ import {
   ContainerLayout,
   FlexboxLayout,
   GridTwoColsLayout,
-  GridThreeColsLayout
+  GridThreeColsLayout,
+  NavbarLayout,
+  FooterLayout
 } from '../layouts';
 
 interface BlockRendererProps {
@@ -76,9 +76,9 @@ const BlockRenderer: React.FC<BlockRendererProps> = ({ component, isSelected, on
       
     // Navigation blocks  
     case "Navbar":
-      return <NavbarBlock content={content} style={style} />;
+      return <NavbarLayout content={content} style={style} />;
     case "Footer":
-      return <FooterBlock content={content} style={style} />;
+      return <FooterLayout content={content} style={style} />;
       
     default:
       return (

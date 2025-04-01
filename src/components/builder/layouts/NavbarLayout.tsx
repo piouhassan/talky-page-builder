@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-interface NavbarBlockProps {
+interface NavbarLayoutProps {
   content?: {
     title?: string;
     subtitle?: string;
@@ -16,7 +16,7 @@ interface NavbarBlockProps {
   };
 }
 
-const NavbarBlock: React.FC<NavbarBlockProps> = ({ content, style }) => {
+const NavbarLayout: React.FC<NavbarLayoutProps> = ({ content, style }) => {
   // Prepare container classes with proper tailwind classes
   const getContainerClass = () => {
     const bgClass = style?.backgroundColor ? `bg-${style.backgroundColor}` : 'bg-white';
@@ -53,4 +53,4 @@ const NavbarBlock: React.FC<NavbarBlockProps> = ({ content, style }) => {
   );
 };
 
-export default NavbarBlock;
+export default NavbarLayout;
