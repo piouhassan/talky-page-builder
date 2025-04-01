@@ -2,9 +2,9 @@
 import React, { useMemo } from 'react';
 import { cn } from "@/lib/utils";
 import { ComponentData } from '../BuilderLayout';
-import BlockRenderer from './BlockRenderer';
+import BlockRenderer from '../blocks/BlockRenderer';
 
-interface ContainerBlockProps {
+interface ContainerLayoutProps {
   content?: {
     title?: string;
     subtitle?: string;
@@ -22,7 +22,7 @@ interface ContainerBlockProps {
   onDrop?: (e: React.DragEvent) => void;
 }
 
-const ContainerBlock: React.FC<ContainerBlockProps> = ({ content, style, isSelected, onDrop }) => {
+const ContainerLayout: React.FC<ContainerLayoutProps> = ({ content, style, isSelected, onDrop }) => {
   // Memoize the container class to prevent recalculations
   const containerClass = useMemo(() => {
     const bgClass = style?.backgroundColor ? `bg-${style.backgroundColor}` : 'bg-white';
@@ -94,4 +94,4 @@ const ContainerBlock: React.FC<ContainerBlockProps> = ({ content, style, isSelec
   );
 };
 
-export default ContainerBlock;
+export default ContainerLayout;

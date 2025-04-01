@@ -2,17 +2,17 @@
 import React, { useMemo } from 'react';
 import { cn } from "@/lib/utils";
 import { ComponentData } from '../BuilderLayout';
-import BlockRenderer from './BlockRenderer';
+import BlockRenderer from '../blocks/BlockRenderer';
 
-interface FlexboxBlockProps {
+interface FlexboxLayoutProps {
   content?: {
     title?: string;
     subtitle?: string;
     children?: ComponentData[];
-    direction?: string; // Changed from 'row' | 'column' to string to match ComponentData
+    direction?: string;
     wrap?: boolean;
-    justifyContent?: string; // Changed from specific values to string
-    alignItems?: string; // Changed from specific values to string
+    justifyContent?: string;
+    alignItems?: string;
     gap?: string;
   };
   style?: {
@@ -26,7 +26,7 @@ interface FlexboxBlockProps {
   onDrop?: (e: React.DragEvent) => void;
 }
 
-const FlexboxBlock: React.FC<FlexboxBlockProps> = ({ content, style, isSelected, onDrop }) => {
+const FlexboxLayout: React.FC<FlexboxLayoutProps> = ({ content, style, isSelected, onDrop }) => {
   // Memoize the container class to prevent recalculations
   const containerClass = useMemo(() => {
     const bgClass = style?.backgroundColor ? `bg-${style.backgroundColor}` : 'bg-white';
@@ -122,4 +122,4 @@ const FlexboxBlock: React.FC<FlexboxBlockProps> = ({ content, style, isSelected,
   );
 };
 
-export default FlexboxBlock;
+export default FlexboxLayout;

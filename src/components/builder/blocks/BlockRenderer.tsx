@@ -9,13 +9,17 @@ import ImageBlock from './ImageBlock';
 import TestimonialBlock from './TestimonialBlock';
 import NavbarBlock from './NavbarBlock';
 import FooterBlock from './FooterBlock';
-import ContainerBlock from './ContainerBlock';
-import GridTwoColsBlock from './GridTwoColsBlock';
-import GridThreeColsBlock from './GridThreeColsBlock';
-import FlexboxBlock from './FlexboxBlock';
 import PricingBlock from './PricingBlock';
 import FAQBlock from './FAQBlock';
 import CTABlock from './CTABlock';
+
+// Import layout components
+import {
+  ContainerLayout,
+  FlexboxLayout,
+  GridTwoColsLayout,
+  GridThreeColsLayout
+} from '../layouts';
 
 interface BlockRendererProps {
   component: ComponentData;
@@ -42,13 +46,13 @@ const BlockRenderer: React.FC<BlockRendererProps> = ({ component, isSelected, on
   switch(type) {
     // Layout blocks
     case "Container":
-      return <ContainerBlock content={content} style={style} isSelected={isSelected} onDrop={handleContainerDrop} />;
+      return <ContainerLayout content={content} style={style} isSelected={isSelected} onDrop={handleContainerDrop} />;
     case "GridTwoCols":
-      return <GridTwoColsBlock content={content} style={style} isSelected={isSelected} onColumnDrop={handleColumnDrop} />;
+      return <GridTwoColsLayout content={content} style={style} isSelected={isSelected} onColumnDrop={handleColumnDrop} />;
     case "GridThreeCols":
-      return <GridThreeColsBlock content={content} style={style} isSelected={isSelected} onColumnDrop={handleColumnDrop} />;
+      return <GridThreeColsLayout content={content} style={style} isSelected={isSelected} onColumnDrop={handleColumnDrop} />;
     case "Flexbox":
-      return <FlexboxBlock content={content} style={style} isSelected={isSelected} onDrop={handleContainerDrop} />;
+      return <FlexboxLayout content={content} style={style} isSelected={isSelected} onDrop={handleContainerDrop} />;
       
     // Content blocks  
     case "Hero":
