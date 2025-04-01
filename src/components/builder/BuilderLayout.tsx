@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
@@ -58,9 +57,10 @@ export interface ComponentData {
 interface BuilderLayoutProps {
   onSaveConfirm?: (pageData: any) => void;
   onMediaLibraryOpen?: () => void;
+  onComponentsUpdate?: (components: ComponentData[]) => void;
 }
 
-const BuilderLayout: React.FC<BuilderLayoutProps> = ({ onSaveConfirm, onMediaLibraryOpen }) => {
+const BuilderLayout: React.FC<BuilderLayoutProps> = ({ onSaveConfirm, onMediaLibraryOpen, onComponentsUpdate }) => {
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
   const [viewportSize, setViewportSize] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
@@ -103,6 +103,13 @@ const BuilderLayout: React.FC<BuilderLayoutProps> = ({ onSaveConfirm, onMediaLib
       window.removeEventListener('component-selected', handleComponentSelected);
     };
   }, []);
+
+  // Update components for parent component when they change
+  useEffect(() => {
+    if (onComponentsUpdate) {
+      onComponentsUpdate(placedComponents);
+    }
+  }, [placedComponents, onComponentsUpdate]);
 
   // Fix the infinite update issue by adding proper dependency checks
   useEffect(() => {
@@ -230,11 +237,12 @@ const BuilderLayout: React.FC<BuilderLayoutProps> = ({ onSaveConfirm, onMediaLib
         />
         {showPropertyPanel && (
           <PropertyPanel 
-            selectedComponent={selectedComponent} 
+            selectedComponent={selectedComponent}
             selectedComponentId={selectedComponentId} 
             componentData={placedComponents.find(c => c.id === selectedComponentId)}
             updateComponentData={updateComponentData}
             onMediaLibraryOpen={onMediaLibraryOpen}
+            allComponents={placedComponents}
           />
         )}
       </div>

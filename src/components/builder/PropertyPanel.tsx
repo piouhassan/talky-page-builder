@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +41,7 @@ const PropertySection: React.FC<PropertySectionProps> = ({ title, children, defa
 };
 
 interface PropertyPanelProps {
+  selectedComponent?: string | null;
   selectedComponentId?: string | null;
   componentData?: ComponentData;
   updateComponentData?: (id: string, newData: Partial<ComponentData>) => void;
@@ -71,6 +71,7 @@ const iconOptions = [
 ];
 
 const PropertyPanel: React.FC<PropertyPanelProps> = ({ 
+  selectedComponent, 
   selectedComponentId, 
   componentData,
   updateComponentData,
@@ -361,7 +362,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
     return (
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-2">
-          {localContent.images?.map((img: string, index: number) => (
+          {localContent.images && Array.isArray(localContent.images) && localContent.images.map((img: string, index: number) => (
             <div key={index} className="relative group">
               <img 
                 src={img} 
@@ -734,7 +735,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
               </div>
             </PropertySection>
             <PropertySection title="Fonctionnalités">
-              {localContent.features && localContent.features.length > 0 ? (
+              {localContent.features && Array.isArray(localContent.features) && localContent.features.length > 0 ? (
                 <div className="space-y-3">
                   {localContent.features.map((feature: any, index: number) => (
                     <div key={index} className="border border-gray-200 rounded-md p-3">
@@ -762,7 +763,25 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                           placeholder="Description"
                           className="text-sm"
                         />
-                        {renderIconSelector()}
+                        <Select 
+                          value={feature.icon || "home"} 
+                          onValueChange={(val) => {
+                            const newFeatures = [...localContent.features];
+                            newFeatures[index].icon = val;
+                            handleContentChange('features', newFeatures);
+                          }}
+                        >
+                          <SelectTrigger className="h-9 border-gray-200">
+                            <SelectValue placeholder="Sélectionner une icône" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {iconOptions.map(icon => (
+                              <SelectItem key={icon.value} value={icon.value}>
+                                {icon.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   ))}
