@@ -58,9 +58,17 @@ interface BuilderLayoutProps {
   onSaveConfirm?: (pageData: any) => void;
   onMediaLibraryOpen?: () => void;
   onComponentsUpdate?: (components: ComponentData[]) => void;
+  onTemplateModalOpen?: (category: string) => void;
+  onFullPagePreview?: () => void;
 }
 
-const BuilderLayout: React.FC<BuilderLayoutProps> = ({ onSaveConfirm, onMediaLibraryOpen, onComponentsUpdate }) => {
+const BuilderLayout: React.FC<BuilderLayoutProps> = ({ 
+  onSaveConfirm, 
+  onMediaLibraryOpen, 
+  onComponentsUpdate, 
+  onTemplateModalOpen, 
+  onFullPagePreview 
+}) => {
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
   const [viewportSize, setViewportSize] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
@@ -223,9 +231,13 @@ const BuilderLayout: React.FC<BuilderLayoutProps> = ({ onSaveConfirm, onMediaLib
         onRedo={handleRedo}
         onSave={savePage}
         onMediaLibraryOpen={onMediaLibraryOpen}
+        onFullPagePreview={onFullPagePreview}
       />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar onComponentSelect={handleComponentSelect} />
+        <Sidebar 
+          onComponentSelect={handleComponentSelect} 
+          onTemplateModalOpen={onTemplateModalOpen}
+        />
         <Canvas 
           viewportSize={viewportSize} 
           selectedWidth={selectedWidth} 
