@@ -16,6 +16,8 @@ interface ComponentPreviewModalProps {
   title: string;
   description: string;
   onVariationSelect?: (variationType: string) => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
@@ -24,7 +26,9 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
   componentType,
   title,
   description,
-  onVariationSelect
+  onVariationSelect,
+  onMouseEnter,
+  onMouseLeave
 }) => {
   if (!isVisible) return null;
 
@@ -117,8 +121,11 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
       style={{
         left: position.x,
         top: position.y,
-        transform: 'translateY(-50%)'
+        transform: 'translateY(-50%)',
+        maxHeight: '70vh'
       }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-100">

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +56,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
   };
 
   const handleMouseEnterWithPosition = (component: any, event: React.MouseEvent) => {
+    // Ne montrer la prévisualisation que pour les layouts
+    if (activeTab !== "layouts") return;
+    
     const rect = event.currentTarget.getBoundingClientRect();
     setPreviewModal({
       isVisible: true,
@@ -72,7 +74,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
     setPreviewModal(prev => ({ ...prev, isVisible: false }));
   };
 
-  // Component data without images
+  const handleModalMouseEnter = () => {
+    setPreviewModal(prev => ({ ...prev, isVisible: true }));
+  };
+
+  const handleModalMouseLeave = () => {
+    setPreviewModal(prev => ({ ...prev, isVisible: false }));
+  };
+
   const layoutComponents = [
     {
       type: "Hero",
@@ -157,7 +166,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
     }
   ];
 
-  // Filter components based on search term
   const filterComponents = (components: any[]) => {
     if (!searchTerm) return components;
     return components.filter(comp => 
@@ -230,15 +238,19 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
         </div>
       </div>
 
-      {/* Preview Modal */}
-      <ComponentPreviewModal
-        isVisible={previewModal.isVisible}
-        position={previewModal.position}
-        componentType={previewModal.component?.type || ''}
-        title={previewModal.component?.title || ''}
-        description={previewModal.component?.description || ''}
-        onVariationSelect={handleVariationSelect}
-      />
+      {/* Preview Modal - seulement pour les layouts */}
+      {activeTab === "layouts" && (
+        <ComponentPreviewModal
+          isVisible={previewModal.isVisible}
+          position={previewModal.position}
+          componentType={previewModal.component?.type || ''}
+          title={previewModal.component?.title || ''}
+          description={previewModal.component?.description || ''}
+          onVariationSelect={handleVariationSelect}
+          onMouseEnter={handleModalMouseEnter}
+          onMouseLeave={handleModalMouseLeave}
+        />
+      )}
     </>
   );
 };
