@@ -8,4 +8,5 @@ export interface HeaderProps {
   onRedo?: () => void;
   onSave?: () => void;
   onMediaLibraryOpen?: () => void;
+  onFullPagePreview?: () => void;
 }
