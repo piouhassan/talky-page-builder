@@ -531,53 +531,82 @@ const Canvas: React.FC<CanvasProps> = ({
   
   return (
     <div 
-      className="flex-1 overflow-auto bg-builder-gray p-8 transition-all"
+      className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-gray-100 transition-all"
       onClick={handleCanvasClick}
       ref={canvasRef}
     >
-      <div className="flex flex-col items-center w-full">
-        <div className="bg-gray-700 text-white text-xs px-4 py-1 rounded-t-md">
-          {viewportSize === 'desktop' ? 'Desktop (>1024px)' : 
-           viewportSize === 'tablet' ? 'Tablet (768px - 1024px)' : 
-           'Mobile (<768px)'} - {selectedWidth}px
+      <div className="flex flex-col items-center w-full min-h-full p-8">
+        {/* Viewport indicator */}
+        <div className="mb-4 bg-gray-800 text-white text-xs px-4 py-2 rounded-full shadow-lg">
+          {viewportSize === 'desktop' ? '🖥️ Desktop' : 
+           viewportSize === 'tablet' ? '📱 Tablet' : 
+           '📱 Mobile'} - {selectedWidth}px
         </div>
+
+        {/* Main Canvas */}
         <div 
-          className={`w-full ${getCanvasWidthClass()} mx-auto bg-white shadow-lg rounded-b-lg min-h-[600px] editable-area transition-all ${
-            dropzoneActive ? 'dropzone active border-2 border-dashed border-builder-blue' : 'dropzone'
+          className={`w-full ${getCanvasWidthClass()} mx-auto bg-white shadow-2xl rounded-lg min-h-[700px] transition-all duration-300 ${
+            dropzoneActive ? 'ring-4 ring-blue-300 ring-opacity-50 scale-[1.02]' : 'hover:shadow-3xl'
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          style={{
+            boxShadow: dropzoneActive 
+              ? '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 4px rgba(59, 130, 246, 0.3)' 
+              : '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+          }}
         >
           {components.length === 0 ? (
-            <div className="flex items-center justify-center h-full text-gray-400 flex-col">
-              <p className="mb-4 text-lg">Glissez et déposez des composants ici</p>
-              <p className="text-sm">Ou choisissez un modèle pour commencer</p>
+            <div className="flex items-center justify-center h-full min-h-[700px] text-gray-400 flex-col">
+              <div className="text-center max-w-md">
+                <div className="mb-6">
+                  <div className="w-24 h-24 mx-auto bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mb-4">
+                    <Plus size={32} className="text-blue-500" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">Commencez à créer</h3>
+                <p className="text-gray-500 mb-6">Glissez et déposez des composants depuis la sidebar pour construire votre page</p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <div className="flex items-center text-sm text-gray-400">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                    Glisser-déposer
+                  </div>
+                  <div className="flex items-center text-sm text-gray-400">
+                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                    Édition en temps réel
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <>
               {/* Add button at the top */}
               <div 
-                className="relative w-full py-2 group hover:bg-gray-50 transition-colors cursor-pointer flex justify-center"
+                className="relative w-full py-3 group hover:bg-blue-50 transition-colors cursor-pointer flex justify-center border-b border-gray-100"
                 onDragOver={(e) => handleBetweenDragOver(e, 0)}
                 onDragLeave={handleBetweenDragLeave}
                 onDrop={(e) => handleBetweenDrop(e, 0)}
               >
-                <div className={`h-1 w-full ${betweenDropzoneActive === 0 ? 'bg-builder-blue' : 'bg-transparent'} transition-colors rounded-full mx-auto`}></div>
+                <div className={`h-1 w-full ${betweenDropzoneActive === 0 ? 'bg-blue-500' : 'bg-transparent'} transition-colors rounded-full mx-auto`}></div>
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="absolute opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border-blue-200 hover:border-blue-300"
                   onClick={() => handleAddComponentClick(0)}
                 >
-                  <Plus size={16} className="mr-1" /> Ajouter
+                  <Plus size={16} className="mr-1" /> Ajouter un composant
                 </Button>
               </div>
               
               {components.map((component, index) => (
                 <React.Fragment key={component.id}>
                   <div 
-                    className={`relative border-2 ${selectedComponentId === component.id ? 'border-builder-blue' : 'border-transparent'} hover:border-builder-blue group`}
+                    className={`relative transition-all duration-200 ${
+                      selectedComponentId === component.id 
+                        ? 'ring-2 ring-blue-500 ring-opacity-50 bg-blue-50' 
+                        : 'hover:ring-2 hover:ring-gray-300 hover:ring-opacity-50 group'
+                    }`}
                     onClick={(e) => handleComponentClick(e, component.id, component.type)}
                   >
                     <BlockRenderer 
@@ -588,48 +617,47 @@ const Canvas: React.FC<CanvasProps> = ({
                     />
                     
                     {/* Component action buttons */}
-                    <div className="absolute top-2 right-2 flex space-x-1 bg-white border border-gray-200 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute top-3 right-3 flex space-x-1 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 transform group-hover:scale-100 scale-95">
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-8 w-8 hover:bg-blue-50"
                         onClick={(e) => handleDuplicate(e, component.id)}
                         title="Dupliquer"
                       >
-                        <Copy size={16} className="text-gray-500" />
+                        <Copy size={14} className="text-gray-600" />
                       </Button>
                       
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-8 w-8 hover:bg-blue-50"
                         onClick={(e) => handleMoveUp(e, component.id)}
                         disabled={components.indexOf(component) === 0}
                         title="Déplacer vers le haut"
                       >
-                        <ArrowUp size={16} className="text-gray-500" />
+                        <ArrowUp size={14} className="text-gray-600" />
                       </Button>
                       
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-8 w-8 hover:bg-blue-50"
                         onClick={(e) => handleMoveDown(e, component.id)}
                         disabled={components.indexOf(component) === components.length - 1}
                         title="Déplacer vers le bas"
                       >
-                        <ArrowDown size={16} className="text-gray-500" />
+                        <ArrowDown size={14} className="text-gray-600" />
                       </Button>
                       
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-8 w-8 hover:bg-red-50"
                         onClick={(e) => {
                           e.stopPropagation();
                           setComponents(components.filter(comp => comp.id !== component.id));
                           if (selectedComponentId === component.id) {
-                            // Notify property panel
                             const event = new CustomEvent('component-selected', { 
                               detail: { id: null, type: null }
                             });
@@ -638,32 +666,44 @@ const Canvas: React.FC<CanvasProps> = ({
                         }}
                         title="Supprimer"
                       >
-                        <XCircle size={16} className="text-gray-500" />
+                        <XCircle size={14} className="text-red-500" />
                       </Button>
                     </div>
+
+                    {/* Selection indicator */}
+                    {selectedComponentId === component.id && (
+                      <div className="absolute top-0 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-br-lg font-medium">
+                        {component.type}
+                      </div>
+                    )}
                   </div>
                   
                   {/* Add button between components */}
                   <div 
-                    className="relative w-full py-2 group hover:bg-gray-50 transition-colors cursor-pointer flex justify-center"
+                    className="relative w-full py-3 group hover:bg-blue-50 transition-colors cursor-pointer flex justify-center border-b border-gray-100"
                     onDragOver={(e) => handleBetweenDragOver(e, index + 1)}
                     onDragLeave={handleBetweenDragLeave}
                     onDrop={(e) => handleBetweenDrop(e, index + 1)}
                   >
-                    <div className={`h-1 w-full ${betweenDropzoneActive === index + 1 ? 'bg-builder-blue' : 'bg-transparent'} transition-colors rounded-full mx-auto`}></div>
+                    <div className={`h-1 w-full ${betweenDropzoneActive === index + 1 ? 'bg-blue-500' : 'bg-transparent'} transition-colors rounded-full mx-auto`}></div>
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="absolute opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border-blue-200 hover:border-blue-300"
                       onClick={() => handleAddComponentClick(index + 1)}
                     >
-                      <Plus size={16} className="mr-1" /> Ajouter
+                      <Plus size={16} className="mr-1" /> Ajouter un composant
                     </Button>
                   </div>
                 </React.Fragment>
               ))}
             </>
           )}
+        </div>
+
+        {/* Canvas info */}
+        <div className="mt-6 text-center text-xs text-gray-500">
+          <p>Canvas responsive • Glisser-déposer pour ajouter • Cliquer pour sélectionner</p>
         </div>
       </div>
     </div>
