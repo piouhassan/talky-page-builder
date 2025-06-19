@@ -2,41 +2,10 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, ChevronDown } from "lucide-react";
+import { Search } from "lucide-react";
 import { cn } from '@/lib/utils';
-import ComponentPreviewCard from './ComponentPreviewCard';
-
-interface SectionProps {
-  title: string;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}
-
-const SidebarSection: React.FC<SectionProps> = ({ title, children, defaultOpen = false }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-  
-  return (
-    <div className="border-b border-gray-200 py-2">
-      <button 
-        className="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {title}
-        <ChevronDown 
-          size={16} 
-          className={cn("transition-transform", isOpen ? "transform rotate-180" : "")}
-        />
-      </button>
-      
-      {isOpen && (
-        <div className="p-3 animate-in slide-in-from-top-2 duration-200">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-};
+import SidebarComponentItem from './SidebarComponentItem';
+import ComponentPreviewModal from './ComponentPreviewModal';
 
 interface SidebarProps {
   onComponentSelect?: (componentType: string) => void;
@@ -45,6 +14,15 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
   const [activeTab, setActiveTab] = useState("layouts");
   const [searchTerm, setSearchTerm] = useState("");
+  const [previewModal, setPreviewModal] = useState<{
+    isVisible: boolean;
+    position: { x: number; y: number };
+    component: any;
+  }>({
+    isVisible: false,
+    position: { x: 0, y: 0 },
+    component: null
+  });
 
   const handleComponentSelect = (componentType: string) => {
     if (onComponentSelect) {
@@ -55,7 +33,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
   const handleDragStart = (e: React.DragEvent, componentType: string) => {
     e.dataTransfer.setData('componentType', componentType);
     
-    // Add a visual indicator for drag operation
     const ghostImage = document.createElement('div');
     ghostImage.className = 'bg-blue-500 text-white p-3 rounded-lg shadow-lg';
     ghostImage.innerText = componentType;
@@ -72,7 +49,23 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
     }, 0);
   };
 
-  // Component data with preview images
+  const handleMouseEnter = (component: any, event: React.MouseEvent) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setPreviewModal({
+      isVisible: true,
+      position: {
+        x: rect.right + 10,
+        y: rect.top + rect.height / 2
+      },
+      component
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setPreviewModal(prev => ({ ...prev, isVisible: false }));
+  };
+
+  // Component data
   const layoutComponents = [
     {
       type: "Hero",
@@ -181,93 +174,81 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
     );
   };
 
+  const getAllComponents = () => {
+    if (activeTab === "layouts") {
+      return filterComponents(layoutComponents);
+    } else {
+      return [...filterComponents(containerComponents), ...filterComponents(basicComponents)];
+    }
+  };
+
   return (
-    <div className="w-[320px] border-r border-gray-200 bg-white h-full overflow-y-auto">
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex space-x-1 mb-4">
-          <Button 
-            className={cn("flex-1 h-9 transition-colors", 
-              activeTab === "layouts" ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            )}
-            onClick={() => setActiveTab("layouts")}
-          >
-            Layouts
-          </Button>
-          <Button 
-            className={cn("flex-1 h-9 transition-colors", 
-              activeTab === "elements" ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            )}
-            onClick={() => setActiveTab("elements")}
-          >
-            Éléments
-          </Button>
+    <>
+      <div className="w-[280px] border-r border-gray-200 bg-white h-full flex flex-col">
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Composants</h2>
+          
+          {/* Tabs */}
+          <div className="flex space-x-1 mb-4">
+            <Button 
+              className={cn("flex-1 h-8 text-sm", 
+                activeTab === "layouts" ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              )}
+              onClick={() => setActiveTab("layouts")}
+            >
+              Layouts
+            </Button>
+            <Button 
+              className={cn("flex-1 h-8 text-sm", 
+                activeTab === "elements" ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              )}
+              onClick={() => setActiveTab("elements")}
+            >
+              Éléments
+            </Button>
+          </div>
+          
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Rechercher..."
+              className="pl-9 h-9 bg-gray-50 border-gray-200"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
         
-        <div className="relative">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Rechercher des composants..."
-            className="pl-9 h-9 bg-gray-50 border-gray-200"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        {/* Components list */}
+        <div className="flex-1 overflow-y-auto">
+          {getAllComponents().map((component) => (
+            <SidebarComponentItem
+              key={component.type}
+              title={component.title}
+              description={component.description}
+              previewImage={component.image}
+              componentType={component.type}
+              onClick={() => handleComponentSelect(component.type)}
+              onDragStart={handleDragStart}
+              onMouseEnter={(e) => handleMouseEnter(component, e)}
+              onMouseLeave={handleMouseLeave}
+            />
+          ))}
         </div>
       </div>
-      
-      <div className="pb-20">
-        {activeTab === "layouts" ? (
-          <SidebarSection title="Sections de Contenu" defaultOpen={true}>
-            <div className="space-y-3">
-              {filterComponents(layoutComponents).map((component) => (
-                <ComponentPreviewCard
-                  key={component.type}
-                  title={component.title}
-                  description={component.description}
-                  previewImage={component.image}
-                  componentType={component.type}
-                  onClick={() => handleComponentSelect(component.type)}
-                  onDragStart={handleDragStart}
-                />
-              ))}
-            </div>
-          </SidebarSection>
-        ) : (
-          <>
-            <SidebarSection title="Conteneurs" defaultOpen={true}>
-              <div className="space-y-3">
-                {filterComponents(containerComponents).map((component) => (
-                  <ComponentPreviewCard
-                    key={component.type}
-                    title={component.title}
-                    description={component.description}
-                    previewImage={component.image}
-                    componentType={component.type}
-                    onClick={() => handleComponentSelect(component.type)}
-                    onDragStart={handleDragStart}
-                  />
-                ))}
-              </div>
-            </SidebarSection>
-            
-            <SidebarSection title="Éléments de Base" defaultOpen={true}>
-              <div className="space-y-3">
-                {filterComponents(basicComponents).map((component) => (
-                  <ComponentPreviewCard
-                    key={component.type}
-                    title={component.title}
-                    description={component.description}
-                    previewImage={component.image}
-                    componentType={component.type}
-                    onClick={() => handleComponentSelect(component.type)}
-                    onDragStart={handleDragStart}
-                  />
-                ))}
-              </div>
-            </SidebarSection>
-          </>
-        )}
-      </div>
-    </div>
+
+      {/* Preview Modal */}
+      <ComponentPreviewModal
+        isVisible={previewModal.isVisible}
+        position={previewModal.position}
+        componentType={previewModal.component?.type || ''}
+        title={previewModal.component?.title || ''}
+        description={previewModal.component?.description || ''}
+        previewImage={previewModal.component?.image || ''}
+      />
+    </>
   );
 };
 
