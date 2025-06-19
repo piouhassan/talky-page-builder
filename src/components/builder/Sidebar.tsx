@@ -30,6 +30,13 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
     }
   };
 
+  const handleVariationSelect = (variationType: string) => {
+    if (onComponentSelect) {
+      onComponentSelect(variationType);
+    }
+    setPreviewModal(prev => ({ ...prev, isVisible: false }));
+  };
+
   const handleDragStart = (e: React.DragEvent, componentType: string) => {
     e.dataTransfer.setData('componentType', componentType);
     
@@ -49,15 +56,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
     }, 0);
   };
 
-  const handleMouseEnter = (component: any) => {
-    // We'll get the position from the event in the component item
-    setPreviewModal(prev => ({
-      ...prev,
-      isVisible: true,
-      component
-    }));
-  };
-
   const handleMouseEnterWithPosition = (component: any, event: React.MouseEvent) => {
     const rect = event.currentTarget.getBoundingClientRect();
     setPreviewModal({
@@ -74,55 +72,47 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
     setPreviewModal(prev => ({ ...prev, isVisible: false }));
   };
 
-  // Component data
+  // Component data without images
   const layoutComponents = [
     {
       type: "Hero",
       title: "Hero Section",
-      description: "Section d'accueil avec titre, sous-titre et call-to-action",
-      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=200&fit=crop&auto=format"
+      description: "Section d'accueil avec titre, sous-titre et call-to-action"
     },
     {
       type: "Navbar",
       title: "Barre de Navigation",
-      description: "Navigation principale avec logo et menu",
-      image: "https://images.unsplash.com/photo-1558655146-364addf25b81?w=400&h=200&fit=crop&auto=format"
+      description: "Navigation principale avec logo et menu"
     },
     {
       type: "Footer",
       title: "Pied de Page",
-      description: "Footer avec liens et informations de contact",
-      image: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&h=200&fit=crop&auto=format"
+      description: "Footer avec liens et informations de contact"
     },
     {
       type: "Features",
       title: "Section Fonctionnalités",
-      description: "Grille de fonctionnalités avec icônes et descriptions",
-      image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=200&fit=crop&auto=format"
+      description: "Grille de fonctionnalités avec icônes et descriptions"
     },
     {
       type: "Testimonial",
       title: "Témoignage",
-      description: "Citation avec photo et informations de l'auteur",
-      image: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=200&fit=crop&auto=format"
+      description: "Citation avec photo et informations de l'auteur"
     },
     {
       type: "Pricing",
       title: "Tarifs",
-      description: "Plans tarifaires en colonnes",
-      image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=200&fit=crop&auto=format"
+      description: "Plans tarifaires en colonnes"
     },
     {
       type: "FAQ",
       title: "Questions Fréquentes",
-      description: "Accordéon de questions et réponses",
-      image: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&h=200&fit=crop&auto=format"
+      description: "Accordéon de questions et réponses"
     },
     {
       type: "CTA",
       title: "Call to Action",
-      description: "Section d'appel à l'action avec boutons",
-      image: "https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=200&fit=crop&auto=format"
+      description: "Section d'appel à l'action avec boutons"
     }
   ];
 
@@ -130,26 +120,22 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
     {
       type: "Container",
       title: "Conteneur",
-      description: "Conteneur simple pour organiser le contenu",
-      image: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&h=200&fit=crop&auto=format"
+      description: "Conteneur simple pour organiser le contenu"
     },
     {
       type: "GridTwoCols",
       title: "Grille 2 Colonnes",
-      description: "Disposition en deux colonnes égales",
-      image: "https://images.unsplash.com/photo-1558655146-d09347e92766?w=400&h=200&fit=crop&auto=format"
+      description: "Disposition en deux colonnes égales"
     },
     {
       type: "GridThreeCols",
       title: "Grille 3 Colonnes",
-      description: "Disposition en trois colonnes égales",
-      image: "https://images.unsplash.com/photo-1558655146-f09347e92766?w=400&h=200&fit=crop&auto=format"
+      description: "Disposition en trois colonnes égales"
     },
     {
       type: "Flexbox",
       title: "Flexbox",
-      description: "Disposition flexible avec contrôles d'alignement",
-      image: "https://images.unsplash.com/photo-1558655146-4d89066bb1d9?w=400&h=200&fit=crop&auto=format"
+      description: "Disposition flexible avec contrôles d'alignement"
     }
   ];
 
@@ -157,20 +143,17 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
     {
       type: "Paragraphe",
       title: "Paragraphe",
-      description: "Bloc de texte formaté",
-      image: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400&h=200&fit=crop&auto=format"
+      description: "Bloc de texte formaté"
     },
     {
       type: "Bouton",
       title: "Bouton",
-      description: "Bouton cliquable avec styles personnalisables",
-      image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=200&fit=crop&auto=format"
+      description: "Bouton cliquable avec styles personnalisables"
     },
     {
       type: "Image",
       title: "Image",
-      description: "Image avec légende optionnelle",
-      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop&auto=format"
+      description: "Image avec légende optionnelle"
     }
   ];
 
@@ -237,7 +220,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
               key={component.type}
               title={component.title}
               description={component.description}
-              previewImage={component.image}
               componentType={component.type}
               onClick={() => handleComponentSelect(component.type)}
               onDragStart={handleDragStart}
@@ -255,7 +237,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
         componentType={previewModal.component?.type || ''}
         title={previewModal.component?.title || ''}
         description={previewModal.component?.description || ''}
-        previewImage={previewModal.component?.image || ''}
+        onVariationSelect={handleVariationSelect}
       />
     </>
   );

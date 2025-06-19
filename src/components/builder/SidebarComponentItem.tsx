@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 interface SidebarComponentItemProps {
   title: string;
   description: string;
-  previewImage: string;
   componentType: string;
   onClick?: () => void;
   onDragStart?: (e: React.DragEvent, type: string) => void;
@@ -17,7 +16,6 @@ interface SidebarComponentItemProps {
 const SidebarComponentItem: React.FC<SidebarComponentItemProps> = ({
   title,
   description,
-  previewImage,
   componentType,
   onClick,
   onDragStart,
@@ -37,13 +35,9 @@ const SidebarComponentItem: React.FC<SidebarComponentItemProps> = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* Small preview thumbnail */}
-      <div className="w-12 h-8 bg-gray-100 rounded overflow-hidden mr-3 flex-shrink-0">
-        <img 
-          src={previewImage} 
-          alt={title}
-          className="w-full h-full object-cover"
-        />
+      {/* Simple icon placeholder */}
+      <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center mr-3 flex-shrink-0">
+        <div className="w-4 h-4 bg-blue-500 rounded-sm"></div>
       </div>
       
       {/* Content */}
