@@ -49,7 +49,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
     }, 0);
   };
 
-  const handleMouseEnter = (component: any, event: React.MouseEvent) => {
+  const handleMouseEnter = (component: any) => {
+    // We'll get the position from the event in the component item
+    setPreviewModal(prev => ({
+      ...prev,
+      isVisible: true,
+      component
+    }));
+  };
+
+  const handleMouseEnterWithPosition = (component: any, event: React.MouseEvent) => {
     const rect = event.currentTarget.getBoundingClientRect();
     setPreviewModal({
       isVisible: true,
@@ -232,7 +241,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
               componentType={component.type}
               onClick={() => handleComponentSelect(component.type)}
               onDragStart={handleDragStart}
-              onMouseEnter={(e) => handleMouseEnter(component, e)}
+              onMouseEnter={(e) => handleMouseEnterWithPosition(component, e)}
               onMouseLeave={handleMouseLeave}
             />
           ))}

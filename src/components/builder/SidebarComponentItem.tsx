@@ -9,7 +9,7 @@ interface SidebarComponentItemProps {
   componentType: string;
   onClick?: () => void;
   onDragStart?: (e: React.DragEvent, type: string) => void;
-  onMouseEnter?: () => void;
+  onMouseEnter?: (e: React.MouseEvent) => void;
   onMouseLeave?: () => void;
   className?: string;
 }

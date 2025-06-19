@@ -4,25 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Plus, Settings, Trash2, Copy, Move } from "lucide-react";
 import { cn } from '@/lib/utils';
 import BlockRenderer from './blocks/BlockRenderer';
-
-interface CanvasComponent {
-  id: string;
-  type: string;
-  props: any;
-}
+import { ComponentData } from './BuilderLayout';
 
 interface CanvasProps {
-  components: CanvasComponent[];
-  onComponentsChange: (components: CanvasComponent[]) => void;
-  onComponentSelect: (componentId: string | null) => void;
+  viewportSize: 'desktop' | 'tablet' | 'mobile';
+  selectedWidth: string;
+  components: ComponentData[];
+  setComponents: React.Dispatch<React.SetStateAction<ComponentData[]>>;
   selectedComponentId: string | null;
+  addComponent: (componentData: ComponentData) => void;
+  addComponentBetween: (componentData: ComponentData, index: number) => void;
 }
 
 const Canvas: React.FC<CanvasProps> = ({ 
+  viewportSize,
+  selectedWidth,
   components, 
-  onComponentsChange, 
-  onComponentSelect, 
-  selectedComponentId 
+  setComponents, 
+  selectedComponentId,
+  addComponent,
+  addComponentBetween
 }) => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -32,20 +33,18 @@ const Canvas: React.FC<CanvasProps> = ({
     const componentType = e.dataTransfer.getData('componentType');
     
     if (componentType) {
-      const newComponent: CanvasComponent = {
+      const newComponent: ComponentData = {
         id: Date.now().toString(),
         type: componentType,
-        props: getDefaultProps(componentType)
+        content: getDefaultContent(componentType),
+        style: getDefaultStyle(componentType)
       };
 
-      const newComponents = [...components];
       if (dragOverIndex !== null) {
-        newComponents.splice(dragOverIndex, 0, newComponent);
+        addComponentBetween(newComponent, dragOverIndex);
       } else {
-        newComponents.push(newComponent);
+        addComponent(newComponent);
       }
-      
-      onComponentsChange(newComponents);
       setDragOverIndex(null);
     }
   };
@@ -67,47 +66,43 @@ const Canvas: React.FC<CanvasProps> = ({
     }
   };
 
-  const getDefaultProps = (componentType: string) => {
+  const getDefaultContent = (componentType: string) => {
     const defaults: Record<string, any> = {
       Hero: {
         title: "Titre Principal",
         subtitle: "Sous-titre descriptif",
         buttonText: "Commencer",
-        buttonLink: "#"
+        buttonUrl: "#"
       },
       Navbar: {
-        logo: "Logo",
-        links: [
-          { text: "Accueil", href: "#" },
-          { text: "À propos", href: "#" },
-          { text: "Services", href: "#" },
-          { text: "Contact", href: "#" }
-        ]
+        title: "Logo"
       },
       Footer: {
-        companyName: "Mon Entreprise",
-        links: [
-          { text: "Politique de confidentialité", href: "#" },
-          { text: "Conditions d'utilisation", href: "#" },
-          { text: "Contact", href: "#" }
-        ]
+        title: "Mon Entreprise"
       },
       Paragraphe: {
-        content: "Voici un paragraphe de texte que vous pouvez modifier."
+        title: "Voici un paragraphe de texte que vous pouvez modifier."
       },
       Bouton: {
-        text: "Cliquer ici",
-        variant: "primary",
-        href: "#"
+        title: "Cliquer ici",
+        url: "#"
       },
       Image: {
-        src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop&auto=format",
+        imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop&auto=format",
         alt: "Image d'exemple",
         caption: "Légende de l'image"
       }
     };
     
     return defaults[componentType] || {};
+  };
+
+  const getDefaultStyle = (componentType: string) => {
+    return {
+      backgroundColor: 'white',
+      padding: '6',
+      textAlign: 'left' as const
+    };
   };
 
   const duplicateComponent = (componentId: string) => {
@@ -120,15 +115,20 @@ const Canvas: React.FC<CanvasProps> = ({
       const index = components.findIndex(c => c.id === componentId);
       const newComponents = [...components];
       newComponents.splice(index + 1, 0, newComponent);
-      onComponentsChange(newComponents);
+      setComponents(newComponents);
     }
   };
 
   const deleteComponent = (componentId: string) => {
     const newComponents = components.filter(c => c.id !== componentId);
-    onComponentsChange(newComponents);
+    setComponents(newComponents);
+    
+    // Dispatch event to deselect component
     if (selectedComponentId === componentId) {
-      onComponentSelect(null);
+      const event = new CustomEvent('component-selected', { 
+        detail: { id: null, type: null }
+      });
+      window.dispatchEvent(event);
     }
   };
 
@@ -141,7 +141,14 @@ const Canvas: React.FC<CanvasProps> = ({
     
     const newComponents = [...components];
     [newComponents[index], newComponents[newIndex]] = [newComponents[newIndex], newComponents[index]];
-    onComponentsChange(newComponents);
+    setComponents(newComponents);
+  };
+
+  const handleComponentClick = (componentId: string, componentType: string) => {
+    const event = new CustomEvent('component-selected', { 
+      detail: { id: componentId, type: componentType }
+    });
+    window.dispatchEvent(event);
   };
 
   return (
@@ -153,9 +160,16 @@ const Canvas: React.FC<CanvasProps> = ({
         onDragOver={(e) => handleDragOver(e)}
         onDragLeave={handleDragLeave}
       >
-        {/* Canvas content container - larger and more centered */}
-        <div className="min-h-full flex justify-center p-8">
-          <div className="w-full max-w-6xl bg-white shadow-sm border border-gray-200 min-h-[800px] relative">
+        {/* Canvas content container */}
+        <div className="min-h-full flex justify-center p-4">
+          <div 
+            className="w-full bg-white shadow-sm border border-gray-200 min-h-[800px] relative"
+            style={{ 
+              maxWidth: viewportSize === 'mobile' ? '375px' : 
+                       viewportSize === 'tablet' ? '768px' : 
+                       `${selectedWidth}px` 
+            }}
+          >
             {components.length === 0 ? (
               // Empty state
               <div 
@@ -187,25 +201,24 @@ const Canvas: React.FC<CanvasProps> = ({
                     {/* Component wrapper */}
                     <div 
                       className={cn(
-                        "relative transition-all duration-200",
+                        "relative transition-all duration-200 cursor-pointer",
                         selectedComponentId === component.id 
                           ? "ring-2 ring-blue-500 ring-offset-2" 
                           : "hover:ring-1 hover:ring-gray-300"
                       )}
                       onClick={(e) => {
                         e.stopPropagation();
-                        onComponentSelect(component.id);
+                        handleComponentClick(component.id, component.type);
                       }}
                       onDragOver={(e) => handleDragOver(e, index)}
                     >
                       {/* Component content */}
                       <BlockRenderer 
-                        type={component.type} 
-                        props={component.props}
+                        component={component}
                         isSelected={selectedComponentId === component.id}
                       />
                       
-                      {/* Component controls - visible on hover or when selected */}
+                      {/* Component controls */}
                       <div className={cn(
                         "absolute top-2 right-2 flex space-x-1 opacity-0 transition-opacity",
                         (selectedComponentId === component.id || "group-hover:opacity-100") && "opacity-100"
@@ -241,7 +254,7 @@ const Canvas: React.FC<CanvasProps> = ({
                           className="h-7 w-7 p-0 bg-white shadow-sm border"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onComponentSelect(component.id);
+                            handleComponentClick(component.id, component.type);
                           }}
                         >
                           <Settings size={12} />
