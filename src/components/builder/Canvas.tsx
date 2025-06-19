@@ -1,288 +1,669 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
-import { Plus, Settings, Trash2, Copy, Move } from "lucide-react";
-import { cn } from '@/lib/utils';
-import BlockRenderer from './blocks/BlockRenderer';
+import { XCircle, Copy, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { ComponentData } from './BuilderLayout';
+import BlockRenderer from './blocks/BlockRenderer';
 
 interface CanvasProps {
-  viewportSize: 'desktop' | 'tablet' | 'mobile';
-  selectedWidth: string;
+  children?: React.ReactNode;
+  viewportSize?: 'desktop' | 'tablet' | 'mobile';
+  selectedWidth?: string;
   components: ComponentData[];
   setComponents: React.Dispatch<React.SetStateAction<ComponentData[]>>;
   selectedComponentId: string | null;
   addComponent: (componentData: ComponentData) => void;
-  addComponentBetween: (componentData: ComponentData, index: number) => void;
+  addComponentBetween?: (componentData: ComponentData, index: number) => void;
 }
 
 const Canvas: React.FC<CanvasProps> = ({ 
-  viewportSize,
-  selectedWidth,
-  components, 
-  setComponents, 
+  children, 
+  viewportSize = 'desktop', 
+  selectedWidth = "1440",
+  components,
+  setComponents,
   selectedComponentId,
   addComponent,
   addComponentBetween
 }) => {
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [dropzoneActive, setDropzoneActive] = useState(false);
+  const [betweenDropzoneActive, setbetweenDropzoneActive] = useState<number | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const componentType = e.dataTransfer.getData('componentType');
+  
+  // Create component data based on type - moved this function to the top so it's defined before use
+  const createComponentFromType = useCallback((componentType: string, uniqueId: string): ComponentData => {
+    const newComponent: ComponentData = {
+      id: uniqueId,
+      type: componentType,
+    };
     
-    if (componentType) {
-      const newComponent: ComponentData = {
-        id: Date.now().toString(),
-        type: componentType,
-        content: getDefaultContent(componentType),
-        style: getDefaultStyle(componentType)
+    // Add default content based on component type
+    if (componentType === "Hero") {
+      newComponent.content = {
+        title: "Restez connecté avec vos amis et votre famille",
+        subtitle: "Restez connecté avec vos proches, où que vous soyez et à tout moment. Créez des groupes, partagez des photos, et gardez le contact facilement.",
+        buttonText: "Télécharger l'application",
+        badge: "NOUVEAU",
+        imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=400&q=80"
       };
-
-      if (dragOverIndex !== null) {
-        addComponentBetween(newComponent, dragOverIndex);
-      } else {
-        addComponent(newComponent);
-      }
-      setDragOverIndex(null);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent, index?: number) => {
-    e.preventDefault();
-    if (index !== undefined) {
-      setDragOverIndex(index);
-    } else {
-      setDragOverIndex(null);
-    }
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (rect && (e.clientX < rect.left || e.clientX > rect.right || 
-                 e.clientY < rect.top || e.clientY > rect.bottom)) {
-      setDragOverIndex(null);
-    }
-  };
-
-  const getDefaultContent = (componentType: string) => {
-    const defaults: Record<string, any> = {
-      Hero: {
-        title: "Titre Principal",
-        subtitle: "Sous-titre descriptif",
-        buttonText: "Commencer",
-        buttonUrl: "#"
-      },
-      Navbar: {
-        title: "Logo"
-      },
-      Footer: {
-        title: "Mon Entreprise"
-      },
-      Paragraphe: {
-        title: "Voici un paragraphe de texte que vous pouvez modifier."
-      },
-      Bouton: {
-        title: "Cliquer ici",
-        url: "#"
-      },
-      Image: {
-        imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop&auto=format",
-        alt: "Image d'exemple",
+      newComponent.style = {
+        backgroundColor: "builder-light-blue",
+        padding: "12",
+        textAlign: "center"
+      };
+    } else if (componentType === "Navbar") {
+      newComponent.content = {
+        title: "Ma Marque",
+        subtitle: "Accueil,Fonctionnalités,Tarifs,Contact",
+        buttonText: "Connexion"
+      };
+      newComponent.style = {
+        backgroundColor: "white",
+        padding: "4",
+        textAlign: "center"
+      };
+    } else if (componentType === "Footer") {
+      newComponent.content = {
+        title: "Ma Marque",
+        subtitle: "© 2023 Ma Marque. Tous droits réservés.",
+        buttonText: "Politique de confidentialité,Conditions d'utilisation,Contact"
+      };
+      newComponent.style = {
+        backgroundColor: "gray-100",
+        padding: "8",
+        textAlign: "center"
+      };
+    } else if (componentType === "Features") {
+      newComponent.content = {
+        title: "Nos fonctionnalités",
+        subtitle: "Découvrez tout ce que notre application peut faire pour vous",
+        features: [
+          {
+            title: "Simple d'utilisation",
+            description: "Notre application est conçue pour être facile à utiliser dès le premier jour."
+          },
+          {
+            title: "Rapide et fiable",
+            description: "Performance optimisée pour vous offrir la meilleure expérience possible."
+          },
+          {
+            title: "Sécurisé",
+            description: "Vos données sont protégées avec les meilleures pratiques de sécurité."
+          }
+        ]
+      };
+      newComponent.style = {
+        backgroundColor: "white",
+        padding: "12",
+        textAlign: "center"
+      };
+    } else if (componentType === "Paragraphe") {
+      newComponent.content = {
+        title: "Titre du paragraphe",
+        subtitle: "Voici le contenu du paragraphe. Vous pouvez modifier ce texte dans le panneau des propriétés à droite.",
+      };
+      newComponent.style = {
+        backgroundColor: "white",
+        padding: "6",
+        textAlign: "left"
+      };
+    } else if (componentType === "Bouton") {
+      newComponent.content = {
+        buttonText: "Cliquez ici",
+        url: "https://example.com"
+      };
+      newComponent.style = {
+        backgroundColor: "white",
+        padding: "6",
+        textAlign: "center"
+      };
+    } else if (componentType === "Image") {
+      newComponent.content = {
+        imageUrl: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=400&q=80",
+        alt: "Image descriptive",
         caption: "Légende de l'image"
-      }
-    };
-    
-    return defaults[componentType] || {};
-  };
-
-  const getDefaultStyle = (componentType: string) => {
-    return {
-      backgroundColor: 'white',
-      padding: '6',
-      textAlign: 'left' as const
-    };
-  };
-
-  const duplicateComponent = (componentId: string) => {
-    const component = components.find(c => c.id === componentId);
-    if (component) {
-      const newComponent = {
-        ...component,
-        id: Date.now().toString()
       };
-      const index = components.findIndex(c => c.id === componentId);
-      const newComponents = [...components];
-      newComponents.splice(index + 1, 0, newComponent);
-      setComponents(newComponents);
+      newComponent.style = {
+        backgroundColor: "white",
+        padding: "6",
+        textAlign: "center"
+      };
+    } else if (componentType === "Testimonial") {
+      newComponent.content = {
+        quote: "Ce produit a complètement transformé notre façon de travailler. Je le recommande vivement !",
+        author: "Jean Dupont",
+        role: "Directeur Marketing",
+        avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&h=100&q=80"
+      };
+      newComponent.style = {
+        backgroundColor: "builder-light-blue",
+        padding: "8",
+        textAlign: "center"
+      };
+    } else if (componentType === "Container") {
+      newComponent.content = {
+        title: "Conteneur",
+        subtitle: "Utilisez ce conteneur pour organiser vos composants",
+        children: []
+      };
+      newComponent.style = {
+        backgroundColor: "white",
+        padding: "6",
+        textAlign: "left"
+      };
+    } else if (componentType === "GridTwoCols") {
+      newComponent.content = {
+        title: "Grille à deux colonnes",
+        subtitle: "Organisez votre contenu en deux colonnes",
+        leftChildren: [],
+        rightChildren: [],
+        gap: "6"
+      };
+      newComponent.style = {
+        backgroundColor: "white",
+        padding: "6",
+        textAlign: "left"
+      };
+    } else if (componentType === "GridThreeCols") {
+      newComponent.content = {
+        title: "Grille à trois colonnes",
+        subtitle: "Organisez votre contenu en trois colonnes",
+        columns: [[], [], []],
+        gap: "6"
+      };
+      newComponent.style = {
+        backgroundColor: "white",
+        padding: "6",
+        textAlign: "left"
+      };
+    } else if (componentType === "Flexbox") {
+      newComponent.content = {
+        title: "Disposition Flexbox",
+        subtitle: "Organisez votre contenu avec flexbox",
+        children: [],
+        direction: "row",
+        wrap: true,
+        justifyContent: "center",
+        gap: "4"
+      };
+      newComponent.style = {
+        backgroundColor: "white",
+        padding: "6",
+        textAlign: "left"
+      };
+    } else if (componentType === "Pricing") {
+      newComponent.style = {
+        backgroundColor: "white",
+        padding: "12",
+        textAlign: "center"
+      };
+    } else if (componentType === "FAQ") {
+      newComponent.style = {
+        backgroundColor: "white",
+        padding: "12",
+        textAlign: "left"
+      };
+    } else if (componentType === "CTA") {
+      newComponent.content = {
+        title: "Prêt à commencer ?",
+        subtitle: "Rejoignez des milliers d'utilisateurs satisfaits dès aujourd'hui.",
+        buttonText: "Commencer gratuitement",
+        secondaryButtonText: "En savoir plus"
+      };
+      newComponent.style = {
+        backgroundColor: "blue-500",
+        padding: "12",
+        textAlign: "center",
+        layout: "center"
+      };
     }
-  };
 
-  const deleteComponent = (componentId: string) => {
-    const newComponents = components.filter(c => c.id !== componentId);
-    setComponents(newComponents);
+    return newComponent;
+  }, []);
+  
+  // Handle drag over event
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDropzoneActive(true);
+  }, []);
+  
+  const handleDragLeave = useCallback(() => {
+    setDropzoneActive(false);
+  }, []);
+
+  // Handle drag over for between components
+  const handleBetweenDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setbetweenDropzoneActive(index);
+  }, []);
+  
+  const handleBetweenDragLeave = useCallback(() => {
+    setbetweenDropzoneActive(null);
+  }, []);
+
+  // Handle drop for between components
+  const handleBetweenDrop = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setbetweenDropzoneActive(null);
     
-    // Dispatch event to deselect component
-    if (selectedComponentId === componentId) {
+    // Get the component type from dataTransfer
+    const componentType = e.dataTransfer.getData('componentType') || "Hero";
+    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
+    
+    // Generate a truly unique ID using timestamp and random string
+    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    
+    // Create a new component with default content based on type
+    const newComponent = createComponentFromType(componentType, uniqueId);
+    
+    // Add component at specific index
+    if (addComponentBetween) {
+      addComponentBetween(newComponent, index);
+    }
+  }, [addComponentBetween, createComponentFromType]);
+  
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDropzoneActive(false);
+    
+    // Get the component type from dataTransfer
+    const componentType = e.dataTransfer.getData('componentType') || "Hero";
+    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
+    
+    // Generate a truly unique ID using timestamp and random string
+    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    
+    // Create a new component with default content based on type
+    const newComponent = createComponentFromType(componentType, uniqueId);
+    
+    // Add the new component
+    addComponent(newComponent);
+    
+    // Select the newly added component
+    const event = new CustomEvent('component-selected', { 
+      detail: { id: uniqueId, type: componentType }
+    });
+    window.dispatchEvent(event);
+  }, [addComponent, createComponentFromType]);
+
+  // Handle dropping components into a container
+  const handleContainerDrop = useCallback((e: React.DragEvent, containerId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Get the component type from dataTransfer
+    const componentType = e.dataTransfer.getData('componentType') || "Paragraphe";
+    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
+    
+    // Generate a unique ID for the new component
+    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    
+    // Create a new component
+    const newComponent = createComponentFromType(componentType, uniqueId);
+    
+    // Find the container component and update its children
+    setComponents(prevComponents => {
+      return prevComponents.map(component => {
+        if (component.id === containerId) {
+          // Initialize the children array if it doesn't exist
+          if (!component.content) {
+            component.content = {};
+          }
+          if (!component.content.children) {
+            component.content.children = [];
+          }
+          
+          // Add the new component to the children array
+          return {
+            ...component,
+            content: {
+              ...component.content,
+              children: [...component.content.children, newComponent]
+            }
+          };
+        }
+        return component;
+      }) as ComponentData[];  // Explicitly cast to ensure type compatibility
+    });
+    
+    // Select the newly added component
+    const event = new CustomEvent('component-selected', { 
+      detail: { id: uniqueId, type: componentType }
+    });
+    window.dispatchEvent(event);
+  }, [setComponents, createComponentFromType]);
+
+  // Handle dropping components into a grid column
+  const handleColumnDrop = useCallback((e: React.DragEvent, containerId: string, columnIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Get the component type from dataTransfer
+    const componentType = e.dataTransfer.getData('componentType') || "Paragraphe";
+    const componentVariant = e.dataTransfer.getData('componentVariant') || "";
+    
+    // Generate a unique ID for the new component
+    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    
+    // Create a new component
+    const newComponent = createComponentFromType(componentType, uniqueId);
+    
+    // Find the grid component and update its columns
+    setComponents(prevComponents => {
+      return prevComponents.map(component => {
+        if (component.id === containerId) {
+          // For GridTwoCols
+          if (component.type === "GridTwoCols") {
+            if (!component.content) {
+              component.content = {};
+            }
+            
+            if (columnIndex === 0) {
+              // Left column
+              if (!component.content.leftChildren) {
+                component.content.leftChildren = [];
+              }
+              
+              return {
+                ...component,
+                content: {
+                  ...component.content,
+                  leftChildren: [...component.content.leftChildren, newComponent]
+                }
+              };
+            } else {
+              // Right column
+              if (!component.content.rightChildren) {
+                component.content.rightChildren = [];
+              }
+              
+              return {
+                ...component,
+                content: {
+                  ...component.content,
+                  rightChildren: [...component.content.rightChildren, newComponent]
+                }
+              };
+            }
+          } 
+          // For GridThreeCols
+          else if (component.type === "GridThreeCols") {
+            if (!component.content) {
+              component.content = {};
+            }
+            
+            if (!component.content.columns) {
+              // Initialize as an array with three empty arrays
+              component.content.columns = [[], [], []];
+            }
+            
+            // Create a copy of the columns array
+            const newColumns = [...component.content.columns];
+            
+            // Ensure the column at the specified index exists
+            if (!newColumns[columnIndex]) {
+              newColumns[columnIndex] = [];
+            }
+            
+            // Add the new component to the specified column
+            newColumns[columnIndex] = [...newColumns[columnIndex], newComponent];
+            
+            // Return the updated component
+            return {
+              ...component,
+              content: {
+                ...component.content,
+                columns: newColumns
+              }
+            };
+          }
+        }
+        return component;
+      }) as ComponentData[];  // Explicitly cast to ensure type compatibility
+    });
+    
+    // Select the newly added component
+    const event = new CustomEvent('component-selected', { 
+      detail: { id: uniqueId, type: componentType }
+    });
+    window.dispatchEvent(event);
+  }, [setComponents, createComponentFromType]);
+
+  // Determine canvas width based on the selected screen size
+  const getCanvasWidthClass = useCallback(() => {
+    switch (viewportSize) {
+      case 'mobile':
+        return 'max-w-sm'; // 384px (mobile equivalent)
+      case 'tablet':
+        return 'max-w-2xl'; // 672px (tablet equivalent)
+      case 'desktop':
+      default:
+        return 'max-w-6xl'; // 1152px (desktop equivalent)
+    }
+  }, [viewportSize]);
+
+  // Select a component on click
+  const handleComponentClick = useCallback((e: React.MouseEvent, id: string, type: string) => {
+    e.stopPropagation();
+    
+    // Dispatch a custom event to notify the property panel
+    const event = new CustomEvent('component-selected', { 
+      detail: { id, type }
+    });
+    window.dispatchEvent(event);
+  }, []);
+
+  // Deselect components when clicking on the canvas background
+  const handleCanvasClick = useCallback((e: React.MouseEvent) => {
+    if (e.target === canvasRef.current) {
+      // Dispatch a custom event to notify the property panel
       const event = new CustomEvent('component-selected', { 
         detail: { id: null, type: null }
       });
       window.dispatchEvent(event);
     }
-  };
+  }, []);
 
-  const moveComponent = (componentId: string, direction: 'up' | 'down') => {
-    const index = components.findIndex(c => c.id === componentId);
-    if (index === -1) return;
-    
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= components.length) return;
-    
-    const newComponents = [...components];
-    [newComponents[index], newComponents[newIndex]] = [newComponents[newIndex], newComponents[index]];
-    setComponents(newComponents);
-  };
+  // Duplicate a component
+  const handleDuplicate = useCallback((e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    const componentToDuplicate = components.find(comp => comp.id === id);
+    if (componentToDuplicate) {
+      // Generate a truly unique ID for the duplicate
+      const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+      const newComponent = {
+        ...JSON.parse(JSON.stringify(componentToDuplicate)),
+        id: uniqueId
+      };
+      
+      // Insert after the original component
+      const index = components.findIndex(comp => comp.id === id);
+      const newComponents = [...components];
+      newComponents.splice(index + 1, 0, newComponent);
+      setComponents(newComponents);
+    }
+  }, [components, setComponents]);
 
-  const handleComponentClick = (componentId: string, componentType: string) => {
+  // Move component up
+  const handleMoveUp = useCallback((e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    const index = components.findIndex(comp => comp.id === id);
+    if (index > 0) {
+      const newComponents = [...components];
+      const temp = newComponents[index - 1];
+      newComponents[index - 1] = newComponents[index];
+      newComponents[index] = temp;
+      setComponents(newComponents);
+    }
+  }, [components, setComponents]);
+
+  // Move component down
+  const handleMoveDown = useCallback((e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    const index = components.findIndex(comp => comp.id === id);
+    if (index < components.length - 1) {
+      const newComponents = [...components];
+      const temp = newComponents[index + 1];
+      newComponents[index + 1] = newComponents[index];
+      newComponents[index] = temp;
+      setComponents(newComponents);
+    }
+  }, [components, setComponents]);
+
+  // Add component button between existing components
+  const handleAddComponentClick = useCallback((index: number) => {
+    // Create a new Paragraph component as a default
+    const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    const newComponent = createComponentFromType("Paragraphe", uniqueId);
+    
+    if (addComponentBetween) {
+      addComponentBetween(newComponent, index);
+    }
+    
+    // Select the newly added component
     const event = new CustomEvent('component-selected', { 
-      detail: { id: componentId, type: componentType }
+      detail: { id: uniqueId, type: "Paragraphe" }
     });
     window.dispatchEvent(event);
-  };
-
+  }, [addComponentBetween, createComponentFromType]);
+  
   return (
-    <div className="flex-1 bg-gray-50 overflow-hidden">
-      <div 
-        ref={canvasRef}
-        className="h-full overflow-y-auto"
-        onDrop={handleDrop}
-        onDragOver={(e) => handleDragOver(e)}
-        onDragLeave={handleDragLeave}
-      >
-        {/* Canvas content container */}
-        <div className="min-h-full flex justify-center p-4">
-          <div 
-            className="w-full bg-white shadow-sm border border-gray-200 min-h-[800px] relative"
-            style={{ 
-              maxWidth: viewportSize === 'mobile' ? '375px' : 
-                       viewportSize === 'tablet' ? '768px' : 
-                       `${selectedWidth}px` 
-            }}
-          >
-            {components.length === 0 ? (
-              // Empty state
+    <div 
+      className="flex-1 overflow-auto bg-builder-gray p-8 transition-all"
+      onClick={handleCanvasClick}
+      ref={canvasRef}
+    >
+      <div className="flex flex-col items-center w-full">
+        <div className="bg-gray-700 text-white text-xs px-4 py-1 rounded-t-md">
+          {viewportSize === 'desktop' ? 'Desktop (>1024px)' : 
+           viewportSize === 'tablet' ? 'Tablet (768px - 1024px)' : 
+           'Mobile (<768px)'} - {selectedWidth}px
+        </div>
+        <div 
+          className={`w-full ${getCanvasWidthClass()} mx-auto bg-white shadow-lg rounded-b-lg min-h-[600px] editable-area transition-all ${
+            dropzoneActive ? 'dropzone active border-2 border-dashed border-builder-blue' : 'dropzone'
+          }`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          {components.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-gray-400 flex-col">
+              <p className="mb-4 text-lg">Glissez et déposez des composants ici</p>
+              <p className="text-sm">Ou choisissez un modèle pour commencer</p>
+            </div>
+          ) : (
+            <>
+              {/* Add button at the top */}
               <div 
-                className="h-full flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-300"
-                onDragOver={(e) => handleDragOver(e)}
+                className="relative w-full py-2 group hover:bg-gray-50 transition-colors cursor-pointer flex justify-center"
+                onDragOver={(e) => handleBetweenDragOver(e, 0)}
+                onDragLeave={handleBetweenDragLeave}
+                onDrop={(e) => handleBetweenDrop(e, 0)}
               >
-                <div className="text-center p-12">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Plus size={32} className="text-gray-400" />
-                  </div>
-                  <h3 className="text-xl font-medium text-gray-600 mb-2">
-                    Commencez votre design
-                  </h3>
-                  <p className="text-gray-500 max-w-md">
-                    Glissez et déposez des composants depuis la barre latérale pour commencer à construire votre page.
-                  </p>
-                </div>
+                <div className={`h-1 w-full ${betweenDropzoneActive === 0 ? 'bg-builder-blue' : 'bg-transparent'} transition-colors rounded-full mx-auto`}></div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="absolute opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => handleAddComponentClick(0)}
+                >
+                  <Plus size={16} className="mr-1" /> Ajouter
+                </Button>
               </div>
-            ) : (
-              // Components list
-              <div className="relative">
-                {components.map((component, index) => (
-                  <div key={component.id} className="relative group">
-                    {/* Drop zone indicator */}
-                    {dragOverIndex === index && (
-                      <div className="h-2 bg-blue-500 rounded-full mx-4 my-2 opacity-75" />
-                    )}
+              
+              {components.map((component, index) => (
+                <React.Fragment key={component.id}>
+                  <div 
+                    className={`relative border-2 ${selectedComponentId === component.id ? 'border-builder-blue' : 'border-transparent'} hover:border-builder-blue group`}
+                    onClick={(e) => handleComponentClick(e, component.id, component.type)}
+                  >
+                    <BlockRenderer 
+                      component={component} 
+                      isSelected={selectedComponentId === component.id}
+                      onContainerDrop={handleContainerDrop}
+                      onColumnDrop={handleColumnDrop}
+                    />
                     
-                    {/* Component wrapper */}
-                    <div 
-                      className={cn(
-                        "relative transition-all duration-200 cursor-pointer",
-                        selectedComponentId === component.id 
-                          ? "ring-2 ring-blue-500 ring-offset-2" 
-                          : "hover:ring-1 hover:ring-gray-300"
-                      )}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleComponentClick(component.id, component.type);
-                      }}
-                      onDragOver={(e) => handleDragOver(e, index)}
-                    >
-                      {/* Component content */}
-                      <BlockRenderer 
-                        component={component}
-                        isSelected={selectedComponentId === component.id}
-                      />
+                    {/* Component action buttons */}
+                    <div className="absolute top-2 right-2 flex space-x-1 bg-white border border-gray-200 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => handleDuplicate(e, component.id)}
+                        title="Dupliquer"
+                      >
+                        <Copy size={16} className="text-gray-500" />
+                      </Button>
                       
-                      {/* Component controls */}
-                      <div className={cn(
-                        "absolute top-2 right-2 flex space-x-1 opacity-0 transition-opacity",
-                        (selectedComponentId === component.id || "group-hover:opacity-100") && "opacity-100"
-                      )}>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="h-7 w-7 p-0 bg-white shadow-sm border"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            moveComponent(component.id, 'up');
-                          }}
-                          disabled={index === 0}
-                        >
-                          <Move size={12} />
-                        </Button>
-                        
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="h-7 w-7 p-0 bg-white shadow-sm border"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            duplicateComponent(component.id);
-                          }}
-                        >
-                          <Copy size={12} />
-                        </Button>
-                        
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="h-7 w-7 p-0 bg-white shadow-sm border"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleComponentClick(component.id, component.type);
-                          }}
-                        >
-                          <Settings size={12} />
-                        </Button>
-                        
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="h-7 w-7 p-0 shadow-sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteComponent(component.id);
-                          }}
-                        >
-                          <Trash2 size={12} />
-                        </Button>
-                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => handleMoveUp(e, component.id)}
+                        disabled={components.indexOf(component) === 0}
+                        title="Déplacer vers le haut"
+                      >
+                        <ArrowUp size={16} className="text-gray-500" />
+                      </Button>
+                      
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => handleMoveDown(e, component.id)}
+                        disabled={components.indexOf(component) === components.length - 1}
+                        title="Déplacer vers le bas"
+                      >
+                        <ArrowDown size={16} className="text-gray-500" />
+                      </Button>
+                      
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setComponents(components.filter(comp => comp.id !== component.id));
+                          if (selectedComponentId === component.id) {
+                            // Notify property panel
+                            const event = new CustomEvent('component-selected', { 
+                              detail: { id: null, type: null }
+                            });
+                            window.dispatchEvent(event);
+                          }
+                        }}
+                        title="Supprimer"
+                      >
+                        <XCircle size={16} className="text-gray-500" />
+                      </Button>
                     </div>
                   </div>
-                ))}
-                
-                {/* Final drop zone */}
-                {dragOverIndex === components.length && (
-                  <div className="h-2 bg-blue-500 rounded-full mx-4 my-2 opacity-75" />
-                )}
-              </div>
-            )}
-          </div>
+                  
+                  {/* Add button between components */}
+                  <div 
+                    className="relative w-full py-2 group hover:bg-gray-50 transition-colors cursor-pointer flex justify-center"
+                    onDragOver={(e) => handleBetweenDragOver(e, index + 1)}
+                    onDragLeave={handleBetweenDragLeave}
+                    onDrop={(e) => handleBetweenDrop(e, index + 1)}
+                  >
+                    <div className={`h-1 w-full ${betweenDropzoneActive === index + 1 ? 'bg-builder-blue' : 'bg-transparent'} transition-colors rounded-full mx-auto`}></div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="absolute opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleAddComponentClick(index + 1)}
+                    >
+                      <Plus size={16} className="mr-1" /> Ajouter
+                    </Button>
+                  </div>
+                </React.Fragment>
+              ))}
+            </>
+          )}
         </div>
       </div>
     </div>
