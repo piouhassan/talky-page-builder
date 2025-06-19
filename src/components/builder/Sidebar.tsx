@@ -141,13 +141,62 @@ const ImageIcon = () => (
   </svg>
 );
 
-interface SidebarProps {
-  onComponentSelect?: (componentType: string) => void;
-  onTemplateModalOpen?: (category: string) => void;
+interface VariantListProps {
+  title: string;
+  variants: Array<{
+    title: string;
+    description: string;
+    image: string;
+  }>;
+  onBack: () => void;
+  onSelect: (variant: string) => void;
+  onDragStart: (e: React.DragEvent, type: string, variant: string) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect, onTemplateModalOpen }) => {
+const VariantList: React.FC<VariantListProps> = ({ title, variants, onBack, onSelect, onDragStart }) => {
+  return (
+    <>
+      <div className="px-3 mb-3">
+        <Button variant="ghost" size="sm" onClick={onBack} className="text-xs">
+          ← Retour
+        </Button>
+        <h3 className="font-medium text-sm px-2">{title}</h3>
+      </div>
+      <div className="grid grid-cols-1 gap-3 px-3">
+        {variants.map((variant, idx) => (
+          <div 
+            key={idx}
+            className="border border-gray-200 rounded-md overflow-hidden hover:border-builder-blue transition-colors cursor-pointer"
+            onClick={() => onSelect(`${title} - ${variant.title}`)}
+            draggable
+            onDragStart={(e) => onDragStart(e, title, variant.title)}
+          >
+            <div className="bg-builder-light-blue p-3 text-center">
+              <h4 className="text-sm font-bold">{variant.title}</h4>
+              <p className="text-[10px] text-gray-600">{variant.description}</p>
+            </div>
+            <img src={variant.image} alt={variant.title} className="w-full h-auto" />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+};
+
+interface SidebarProps {
+  onComponentSelect?: (componentType: string) => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect }) => {
   const [activeTab, setActiveTab] = useState("layouts");
+  const [showVariants, setShowVariants] = useState<null | {
+    type: string;
+    variants: Array<{
+      title: string;
+      description: string;
+      image: string;
+    }>
+  }>(null);
 
   const handleComponentSelect = (componentType: string) => {
     if (onComponentSelect) {
@@ -155,16 +204,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect, onTemplateModalOpe
     }
   };
 
-  const handleTemplateSelect = (category: string) => {
-    if (onTemplateModalOpen) {
-      onTemplateModalOpen(category);
-    }
-  };
-
-  const handleDragStart = (e: React.DragEvent, componentType: string) => {
+  const handleDragStart = (e: React.DragEvent, componentType: string, variant: string = "") => {
     e.dataTransfer.setData('componentType', componentType);
-    e.dataTransfer.setData('componentVariant', '');
+    e.dataTransfer.setData('componentVariant', variant);
     
+    // Add a visual indicator for drag operation
     const ghostImage = document.createElement('div');
     ghostImage.className = 'bg-blue-500 text-white p-2 rounded';
     ghostImage.innerText = componentType;
@@ -177,6 +221,123 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect, onTemplateModalOpe
     setTimeout(() => {
       document.body.removeChild(ghostImage);
     }, 0);
+  };
+
+  const heroVariants = [
+    {
+      title: "Hero Centré",
+      description: "Titre + Texte + CTA",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Hero Image Droite",
+      description: "Titre + Texte + CTA + Image",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Hero Image Gauche",
+      description: "Image + Titre + Texte + CTA",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Hero Fond Image",
+      description: "Image de fond + Titre + CTA",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    }
+  ];
+
+  const footerVariants = [
+    {
+      title: "Footer Simple",
+      description: "Logo + Liens + Copyright",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Footer Multi-colonnes",
+      description: "Logo + Menus + Réseaux sociaux",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Footer avec Newsletter",
+      description: "Liens + Inscription newsletter",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    }
+  ];
+
+  const navVariants = [
+    {
+      title: "Navbar Simple",
+      description: "Logo + Menu horizontal",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Navbar avec Recherche",
+      description: "Logo + Menu + Recherche",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Navbar avec CTA",
+      description: "Logo + Menu + Bouton",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    }
+  ];
+
+  const featureVariants = [
+    {
+      title: "Features en Grille",
+      description: "Icônes + Titre + Description",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Features avec Image",
+      description: "Images + Titre + Description",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Features Alternées",
+      description: "Image + Texte alternés",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    }
+  ];
+
+  const cardVariants = [
+    {
+      title: "Cartes Simples",
+      description: "Titre + Texte + Lien",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Cartes avec Image",
+      description: "Image + Titre + Texte",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    },
+    {
+      title: "Cartes Testimonials",
+      description: "Avatar + Nom + Témoignage",
+      image: "https://placehold.co/300x150/4361EE/FFF"
+    }
+  ];
+
+  const showVariantsFor = (type: string) => {
+    switch(type) {
+      case "Hero":
+        setShowVariants({ type, variants: heroVariants });
+        break;
+      case "Footer":
+        setShowVariants({ type, variants: footerVariants });
+        break;
+      case "Navbar":
+        setShowVariants({ type, variants: navVariants });
+        break;
+      case "Features":
+        setShowVariants({ type, variants: featureVariants });
+        break;
+      case "Cards":
+        setShowVariants({ type, variants: cardVariants });
+        break;
+      default:
+        handleComponentSelect(type);
+    }
   };
 
   return (
@@ -211,188 +372,200 @@ const Sidebar: React.FC<SidebarProps> = ({ onComponentSelect, onTemplateModalOpe
       </div>
       
       <div className="pb-20">
-        {activeTab === "layouts" ? (
-          <>
-            <SidebarSection title="Navigation" defaultOpen={true}>
-              <div className="grid grid-cols-2 gap-2">
-                <ComponentPreview 
-                  title="Barre de nav" 
-                  icon={<NavIcon />} 
-                  onClick={() => handleTemplateSelect("Navbar")}
-                  componentType="Navbar"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="Pied de page" 
-                  icon={<FooterIcon />} 
-                  onClick={() => handleTemplateSelect("Footer")}
-                  componentType="Footer"
-                  onDragStart={handleDragStart}
-                />
-              </div>
-            </SidebarSection>
-            
-            <SidebarSection title="Contenu">
-              <div className="grid grid-cols-2 gap-2">
-                <ComponentPreview 
-                  title="Hero" 
-                  icon={<HeroIcon />} 
-                  onClick={() => handleTemplateSelect("Hero")} 
-                  componentType="Hero"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="Testimonial" 
-                  icon={<CardsIcon />} 
-                  onClick={() => handleComponentSelect("Testimonial")}
-                  componentType="Testimonial"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="Fonctionnalités" 
-                  icon={<FeaturesIcon />} 
-                  onClick={() => handleTemplateSelect("Features")}
-                  componentType="Features"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="Pricing" 
-                  icon={<CardsIcon />}
-                  onClick={() => handleComponentSelect("Pricing")}
-                  componentType="Pricing"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="FAQ" 
-                  icon={<FeaturesIcon />}
-                  onClick={() => handleComponentSelect("FAQ")}
-                  componentType="FAQ"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="CTA" 
-                  icon={<FeaturesIcon />}
-                  onClick={() => handleComponentSelect("CTA")}
-                  componentType="CTA"
-                  onDragStart={handleDragStart}
-                />
-              </div>
-            </SidebarSection>
-          </>
+        {showVariants ? (
+          <VariantList 
+            title={showVariants.type}
+            variants={showVariants.variants}
+            onBack={() => setShowVariants(null)}
+            onSelect={handleComponentSelect}
+            onDragStart={handleDragStart}
+          />
         ) : (
           <>
-            <SidebarSection title="Conteneurs" defaultOpen={true}>
-              <div className="grid grid-cols-2 gap-2">
-                <ComponentPreview 
-                  title="Container" 
-                  icon={<ContainerIcon />}
-                  onClick={() => handleTemplateSelect("Container")}
-                  componentType="Container"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="Grille 2 cols" 
-                  icon={<CardsIcon />}
-                  onClick={() => handleTemplateSelect("GridTwoCols")}
-                  componentType="GridTwoCols"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="Grille 3 cols" 
-                  icon={<CardsIcon />}
-                  onClick={() => handleTemplateSelect("GridThreeCols")}
-                  componentType="GridThreeCols"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="Flexbox" 
-                  icon={<ContainerIcon />}
-                  onClick={() => handleTemplateSelect("Flexbox")}
-                  componentType="Flexbox"
-                  onDragStart={handleDragStart}
-                />
-              </div>
-            </SidebarSection>
-            
-            <SidebarSection title="Basiques" defaultOpen={true}>
-              <div className="grid grid-cols-2 gap-2">
-                <ComponentPreview 
-                  title="Paragraphe" 
-                  icon={<ParagraphIcon />}
-                  onClick={() => handleComponentSelect("Paragraphe")}
-                  componentType="Paragraphe"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="Bouton" 
-                  icon={<ButtonIcon />}
-                  onClick={() => handleComponentSelect("Bouton")}
-                  componentType="Bouton"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="Image" 
-                  icon={<ImageIcon />}
-                  onClick={() => handleComponentSelect("Image")}
-                  componentType="Image"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="Liste" 
-                  icon={<ParagraphIcon />}
-                  onClick={() => handleComponentSelect("Liste")}
-                  componentType="Liste"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="Séparateur" 
-                  icon={<ButtonIcon />}
-                  onClick={() => handleComponentSelect("Séparateur")}
-                  componentType="Séparateur"
-                  onDragStart={handleDragStart}
-                />
-              </div>
-            </SidebarSection>
-            
-            <SidebarSection title="Formulaires">
-              <div className="grid grid-cols-2 gap-2">
-                <ComponentPreview 
-                  title="Entrée texte" 
-                  icon={<ButtonIcon />}
-                  onClick={() => handleComponentSelect("Entrée texte")}
-                  componentType="Entrée texte"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="Case à cocher" 
-                  icon={<ButtonIcon />}
-                  onClick={() => handleComponentSelect("Case à cocher")}
-                  componentType="Case à cocher"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="Radio" 
-                  icon={<ButtonIcon />}
-                  onClick={() => handleComponentSelect("Radio")}
-                  componentType="Radio"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="Select" 
-                  icon={<ButtonIcon />}
-                  onClick={() => handleComponentSelect("Select")}
-                  componentType="Select"
-                  onDragStart={handleDragStart}
-                />
-                <ComponentPreview 
-                  title="Textarea" 
-                  icon={<ButtonIcon />}
-                  onClick={() => handleComponentSelect("Textarea")}
-                  componentType="Textarea"
-                  onDragStart={handleDragStart}
-                />
-              </div>
-            </SidebarSection>
+            {activeTab === "layouts" ? (
+              <>
+                <SidebarSection title="Navigation" defaultOpen={true}>
+                  <div className="grid grid-cols-2 gap-2">
+                    <ComponentPreview 
+                      title="Barre de nav" 
+                      icon={<NavIcon />} 
+                      onClick={() => showVariantsFor("Navbar")}
+                      componentType="Navbar"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="Pied de page" 
+                      icon={<FooterIcon />} 
+                      onClick={() => showVariantsFor("Footer")}
+                      componentType="Footer"
+                      onDragStart={handleDragStart}
+                    />
+                  </div>
+                </SidebarSection>
+                
+                <SidebarSection title="Contenu">
+                  <div className="grid grid-cols-2 gap-2">
+                    <ComponentPreview 
+                      title="Hero" 
+                      icon={<HeroIcon />} 
+                      onClick={() => showVariantsFor("Hero")} 
+                      componentType="Hero"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="Testimonial" 
+                      icon={<CardsIcon />} 
+                      onClick={() => handleComponentSelect("Testimonial")}
+                      componentType="Testimonial"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="Fonctionnalités" 
+                      icon={<FeaturesIcon />} 
+                      onClick={() => handleComponentSelect("Features")}
+                      componentType="Features"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="Pricing" 
+                      icon={<CardsIcon />}
+                      onClick={() => handleComponentSelect("Pricing")}
+                      componentType="Pricing"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="FAQ" 
+                      icon={<FeaturesIcon />}
+                      onClick={() => handleComponentSelect("FAQ")}
+                      componentType="FAQ"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="CTA" 
+                      icon={<FeaturesIcon />}
+                      onClick={() => handleComponentSelect("CTA")}
+                      componentType="CTA"
+                      onDragStart={handleDragStart}
+                    />
+                  </div>
+                </SidebarSection>
+              </>
+            ) : (
+              <>
+                <SidebarSection title="Conteneurs" defaultOpen={true}>
+                  <div className="grid grid-cols-2 gap-2">
+                    <ComponentPreview 
+                      title="Container" 
+                      icon={<ContainerIcon />}
+                      onClick={() => handleComponentSelect("Container")}
+                      componentType="Container"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="Grille 2 cols" 
+                      icon={<CardsIcon />}
+                      onClick={() => handleComponentSelect("GridTwoCols")}
+                      componentType="GridTwoCols"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="Grille 3 cols" 
+                      icon={<CardsIcon />}
+                      onClick={() => handleComponentSelect("GridThreeCols")}
+                      componentType="GridThreeCols"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="Flexbox" 
+                      icon={<ContainerIcon />}
+                      onClick={() => handleComponentSelect("Flexbox")}
+                      componentType="Flexbox"
+                      onDragStart={handleDragStart}
+                    />
+                  </div>
+                </SidebarSection>
+                
+                <SidebarSection title="Basiques" defaultOpen={true}>
+                  <div className="grid grid-cols-2 gap-2">
+                    <ComponentPreview 
+                      title="Paragraphe" 
+                      icon={<ParagraphIcon />}
+                      onClick={() => handleComponentSelect("Paragraphe")}
+                      componentType="Paragraphe"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="Bouton" 
+                      icon={<ButtonIcon />}
+                      onClick={() => handleComponentSelect("Bouton")}
+                      componentType="Bouton"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="Image" 
+                      icon={<ImageIcon />}
+                      onClick={() => handleComponentSelect("Image")}
+                      componentType="Image"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="Liste" 
+                      icon={<ParagraphIcon />}
+                      onClick={() => handleComponentSelect("Liste")}
+                      componentType="Liste"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="Séparateur" 
+                      icon={<ButtonIcon />}
+                      onClick={() => handleComponentSelect("Séparateur")}
+                      componentType="Séparateur"
+                      onDragStart={handleDragStart}
+                    />
+                  </div>
+                </SidebarSection>
+                
+                <SidebarSection title="Formulaires">
+                  <div className="grid grid-cols-2 gap-2">
+                    <ComponentPreview 
+                      title="Entrée texte" 
+                      icon={<ButtonIcon />}
+                      onClick={() => handleComponentSelect("Entrée texte")}
+                      componentType="Entrée texte"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="Case à cocher" 
+                      icon={<ButtonIcon />}
+                      onClick={() => handleComponentSelect("Case à cocher")}
+                      componentType="Case à cocher"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="Radio" 
+                      icon={<ButtonIcon />}
+                      onClick={() => handleComponentSelect("Radio")}
+                      componentType="Radio"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="Select" 
+                      icon={<ButtonIcon />}
+                      onClick={() => handleComponentSelect("Select")}
+                      componentType="Select"
+                      onDragStart={handleDragStart}
+                    />
+                    <ComponentPreview 
+                      title="Textarea" 
+                      icon={<ButtonIcon />}
+                      onClick={() => handleComponentSelect("Textarea")}
+                      componentType="Textarea"
+                      onDragStart={handleDragStart}
+                    />
+                  </div>
+                </SidebarSection>
+              </>
+            )}
           </>
         )}
       </div>

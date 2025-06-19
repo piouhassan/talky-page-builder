@@ -1,6 +1,7 @@
+
 import React, { useState, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
-import { XCircle, Copy, ArrowUp, ArrowDown, Plus, Eye } from "lucide-react";
+import { XCircle, Copy, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { ComponentData } from './BuilderLayout';
 import BlockRenderer from './blocks/BlockRenderer';
 
@@ -13,7 +14,6 @@ interface CanvasProps {
   selectedComponentId: string | null;
   addComponent: (componentData: ComponentData) => void;
   addComponentBetween?: (componentData: ComponentData, index: number) => void;
-  onFullPagePreview?: () => void;
 }
 
 const Canvas: React.FC<CanvasProps> = ({ 
@@ -24,13 +24,13 @@ const Canvas: React.FC<CanvasProps> = ({
   setComponents,
   selectedComponentId,
   addComponent,
-  addComponentBetween,
-  onFullPagePreview
+  addComponentBetween
 }) => {
   const [dropzoneActive, setDropzoneActive] = useState(false);
   const [betweenDropzoneActive, setbetweenDropzoneActive] = useState<number | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   
+  // Create component data based on type - moved this function to the top so it's defined before use
   const createComponentFromType = useCallback((componentType: string, uniqueId: string): ComponentData => {
     const newComponent: ComponentData = {
       id: uniqueId,
@@ -220,8 +220,8 @@ const Canvas: React.FC<CanvasProps> = ({
 
     return newComponent;
   }, []);
-
   
+  // Handle drag over event
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDropzoneActive(true);
@@ -231,6 +231,7 @@ const Canvas: React.FC<CanvasProps> = ({
     setDropzoneActive(false);
   }, []);
 
+  // Handle drag over for between components
   const handleBetweenDragOver = useCallback((e: React.DragEvent, index: number) => {
     e.preventDefault();
     e.stopPropagation();
@@ -241,18 +242,23 @@ const Canvas: React.FC<CanvasProps> = ({
     setbetweenDropzoneActive(null);
   }, []);
 
+  // Handle drop for between components
   const handleBetweenDrop = useCallback((e: React.DragEvent, index: number) => {
     e.preventDefault();
     e.stopPropagation();
     setbetweenDropzoneActive(null);
     
+    // Get the component type from dataTransfer
     const componentType = e.dataTransfer.getData('componentType') || "Hero";
     const componentVariant = e.dataTransfer.getData('componentVariant') || "";
     
+    // Generate a truly unique ID using timestamp and random string
     const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
     
+    // Create a new component with default content based on type
     const newComponent = createComponentFromType(componentType, uniqueId);
     
+    // Add component at specific index
     if (addComponentBetween) {
       addComponentBetween(newComponent, index);
     }
@@ -262,35 +268,46 @@ const Canvas: React.FC<CanvasProps> = ({
     e.preventDefault();
     setDropzoneActive(false);
     
+    // Get the component type from dataTransfer
     const componentType = e.dataTransfer.getData('componentType') || "Hero";
     const componentVariant = e.dataTransfer.getData('componentVariant') || "";
     
+    // Generate a truly unique ID using timestamp and random string
     const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
     
+    // Create a new component with default content based on type
     const newComponent = createComponentFromType(componentType, uniqueId);
     
+    // Add the new component
     addComponent(newComponent);
     
+    // Select the newly added component
     const event = new CustomEvent('component-selected', { 
       detail: { id: uniqueId, type: componentType }
     });
     window.dispatchEvent(event);
   }, [addComponent, createComponentFromType]);
 
+  // Handle dropping components into a container
   const handleContainerDrop = useCallback((e: React.DragEvent, containerId: string) => {
     e.preventDefault();
     e.stopPropagation();
     
+    // Get the component type from dataTransfer
     const componentType = e.dataTransfer.getData('componentType') || "Paragraphe";
     const componentVariant = e.dataTransfer.getData('componentVariant') || "";
     
+    // Generate a unique ID for the new component
     const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
     
+    // Create a new component
     const newComponent = createComponentFromType(componentType, uniqueId);
     
+    // Find the container component and update its children
     setComponents(prevComponents => {
       return prevComponents.map(component => {
         if (component.id === containerId) {
+          // Initialize the children array if it doesn't exist
           if (!component.content) {
             component.content = {};
           }
@@ -298,6 +315,7 @@ const Canvas: React.FC<CanvasProps> = ({
             component.content.children = [];
           }
           
+          // Add the new component to the children array
           return {
             ...component,
             content: {
@@ -307,35 +325,43 @@ const Canvas: React.FC<CanvasProps> = ({
           };
         }
         return component;
-      }) as ComponentData[];
+      }) as ComponentData[];  // Explicitly cast to ensure type compatibility
     });
     
+    // Select the newly added component
     const event = new CustomEvent('component-selected', { 
       detail: { id: uniqueId, type: componentType }
     });
     window.dispatchEvent(event);
   }, [setComponents, createComponentFromType]);
 
+  // Handle dropping components into a grid column
   const handleColumnDrop = useCallback((e: React.DragEvent, containerId: string, columnIndex: number) => {
     e.preventDefault();
     e.stopPropagation();
     
+    // Get the component type from dataTransfer
     const componentType = e.dataTransfer.getData('componentType') || "Paragraphe";
     const componentVariant = e.dataTransfer.getData('componentVariant') || "";
     
+    // Generate a unique ID for the new component
     const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
     
+    // Create a new component
     const newComponent = createComponentFromType(componentType, uniqueId);
     
+    // Find the grid component and update its columns
     setComponents(prevComponents => {
       return prevComponents.map(component => {
         if (component.id === containerId) {
+          // For GridTwoCols
           if (component.type === "GridTwoCols") {
             if (!component.content) {
               component.content = {};
             }
             
             if (columnIndex === 0) {
+              // Left column
               if (!component.content.leftChildren) {
                 component.content.leftChildren = [];
               }
@@ -348,6 +374,7 @@ const Canvas: React.FC<CanvasProps> = ({
                 }
               };
             } else {
+              // Right column
               if (!component.content.rightChildren) {
                 component.content.rightChildren = [];
               }
@@ -361,23 +388,29 @@ const Canvas: React.FC<CanvasProps> = ({
               };
             }
           } 
+          // For GridThreeCols
           else if (component.type === "GridThreeCols") {
             if (!component.content) {
               component.content = {};
             }
             
             if (!component.content.columns) {
+              // Initialize as an array with three empty arrays
               component.content.columns = [[], [], []];
             }
             
+            // Create a copy of the columns array
             const newColumns = [...component.content.columns];
             
+            // Ensure the column at the specified index exists
             if (!newColumns[columnIndex]) {
               newColumns[columnIndex] = [];
             }
             
+            // Add the new component to the specified column
             newColumns[columnIndex] = [...newColumns[columnIndex], newComponent];
             
+            // Return the updated component
             return {
               ...component,
               content: {
@@ -388,39 +421,44 @@ const Canvas: React.FC<CanvasProps> = ({
           }
         }
         return component;
-      }) as ComponentData[];
+      }) as ComponentData[];  // Explicitly cast to ensure type compatibility
     });
     
+    // Select the newly added component
     const event = new CustomEvent('component-selected', { 
       detail: { id: uniqueId, type: componentType }
     });
     window.dispatchEvent(event);
   }, [setComponents, createComponentFromType]);
 
-  
+  // Determine canvas width based on the selected screen size
   const getCanvasWidthClass = useCallback(() => {
     switch (viewportSize) {
       case 'mobile':
-        return 'max-w-sm';
+        return 'max-w-sm'; // 384px (mobile equivalent)
       case 'tablet':
-        return 'max-w-2xl';
+        return 'max-w-2xl'; // 672px (tablet equivalent)
       case 'desktop':
       default:
-        return 'max-w-6xl';
+        return 'max-w-6xl'; // 1152px (desktop equivalent)
     }
   }, [viewportSize]);
 
+  // Select a component on click
   const handleComponentClick = useCallback((e: React.MouseEvent, id: string, type: string) => {
     e.stopPropagation();
     
+    // Dispatch a custom event to notify the property panel
     const event = new CustomEvent('component-selected', { 
       detail: { id, type }
     });
     window.dispatchEvent(event);
   }, []);
 
+  // Deselect components when clicking on the canvas background
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
     if (e.target === canvasRef.current) {
+      // Dispatch a custom event to notify the property panel
       const event = new CustomEvent('component-selected', { 
         detail: { id: null, type: null }
       });
@@ -428,16 +466,19 @@ const Canvas: React.FC<CanvasProps> = ({
     }
   }, []);
 
+  // Duplicate a component
   const handleDuplicate = useCallback((e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     const componentToDuplicate = components.find(comp => comp.id === id);
     if (componentToDuplicate) {
+      // Generate a truly unique ID for the duplicate
       const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
       const newComponent = {
         ...JSON.parse(JSON.stringify(componentToDuplicate)),
         id: uniqueId
       };
       
+      // Insert after the original component
       const index = components.findIndex(comp => comp.id === id);
       const newComponents = [...components];
       newComponents.splice(index + 1, 0, newComponent);
@@ -445,6 +486,7 @@ const Canvas: React.FC<CanvasProps> = ({
     }
   }, [components, setComponents]);
 
+  // Move component up
   const handleMoveUp = useCallback((e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     const index = components.findIndex(comp => comp.id === id);
@@ -457,6 +499,7 @@ const Canvas: React.FC<CanvasProps> = ({
     }
   }, [components, setComponents]);
 
+  // Move component down
   const handleMoveDown = useCallback((e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     const index = components.findIndex(comp => comp.id === id);
@@ -469,7 +512,9 @@ const Canvas: React.FC<CanvasProps> = ({
     }
   }, [components, setComponents]);
 
+  // Add component button between existing components
   const handleAddComponentClick = useCallback((index: number) => {
+    // Create a new Paragraph component as a default
     const uniqueId = `component-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
     const newComponent = createComponentFromType("Paragraphe", uniqueId);
     
@@ -477,6 +522,7 @@ const Canvas: React.FC<CanvasProps> = ({
       addComponentBetween(newComponent, index);
     }
     
+    // Select the newly added component
     const event = new CustomEvent('component-selected', { 
       detail: { id: uniqueId, type: "Paragraphe" }
     });
@@ -485,30 +531,16 @@ const Canvas: React.FC<CanvasProps> = ({
   
   return (
     <div 
-      className="flex-1 overflow-auto bg-builder-gray transition-all"
+      className="flex-1 overflow-auto bg-builder-gray p-8 transition-all"
       onClick={handleCanvasClick}
       ref={canvasRef}
     >
-      <div className="flex flex-col items-center w-full h-full">
-        <div className="bg-gray-700 text-white text-xs px-4 py-2 rounded-t-md flex items-center justify-between w-full max-w-6xl">
-          <span>
-            {viewportSize === 'desktop' ? 'Desktop (>1024px)' : 
-             viewportSize === 'tablet' ? 'Tablet (768px - 1024px)' : 
-             'Mobile (<768px)'} - {selectedWidth}px
-          </span>
-          {onFullPagePreview && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onFullPagePreview}
-              className="text-white hover:bg-white/20"
-            >
-              <Eye size={16} className="mr-1" />
-              Aperçu
-            </Button>
-          )}
+      <div className="flex flex-col items-center w-full">
+        <div className="bg-gray-700 text-white text-xs px-4 py-1 rounded-t-md">
+          {viewportSize === 'desktop' ? 'Desktop (>1024px)' : 
+           viewportSize === 'tablet' ? 'Tablet (768px - 1024px)' : 
+           'Mobile (<768px)'} - {selectedWidth}px
         </div>
-        
         <div 
           className={`w-full ${getCanvasWidthClass()} mx-auto bg-white shadow-lg rounded-b-lg min-h-[600px] editable-area transition-all ${
             dropzoneActive ? 'dropzone active border-2 border-dashed border-builder-blue' : 'dropzone'
@@ -518,12 +550,13 @@ const Canvas: React.FC<CanvasProps> = ({
           onDrop={handleDrop}
         >
           {components.length === 0 ? (
-            <div className="flex items-center justify-center h-full text-gray-400 flex-col p-8">
+            <div className="flex items-center justify-center h-full text-gray-400 flex-col">
               <p className="mb-4 text-lg">Glissez et déposez des composants ici</p>
               <p className="text-sm">Ou choisissez un modèle pour commencer</p>
             </div>
           ) : (
             <>
+              {/* Add button at the top */}
               <div 
                 className="relative w-full py-2 group hover:bg-gray-50 transition-colors cursor-pointer flex justify-center"
                 onDragOver={(e) => handleBetweenDragOver(e, 0)}
@@ -554,6 +587,7 @@ const Canvas: React.FC<CanvasProps> = ({
                       onColumnDrop={handleColumnDrop}
                     />
                     
+                    {/* Component action buttons */}
                     <div className="absolute top-2 right-2 flex space-x-1 bg-white border border-gray-200 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button 
                         variant="ghost" 
@@ -595,6 +629,7 @@ const Canvas: React.FC<CanvasProps> = ({
                           e.stopPropagation();
                           setComponents(components.filter(comp => comp.id !== component.id));
                           if (selectedComponentId === component.id) {
+                            // Notify property panel
                             const event = new CustomEvent('component-selected', { 
                               detail: { id: null, type: null }
                             });
@@ -608,6 +643,7 @@ const Canvas: React.FC<CanvasProps> = ({
                     </div>
                   </div>
                   
+                  {/* Add button between components */}
                   <div 
                     className="relative w-full py-2 group hover:bg-gray-50 transition-colors cursor-pointer flex justify-center"
                     onDragOver={(e) => handleBetweenDragOver(e, index + 1)}

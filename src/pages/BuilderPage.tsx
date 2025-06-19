@@ -12,154 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import MediaLibraryDialog from '@/components/builder/MediaLibraryDialog';
-import TemplateSelectionModal from '@/components/builder/TemplateSelectionModal';
-import FullPagePreview from '@/components/builder/FullPagePreview';
 
 const BuilderPage = () => {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
-  const [showTemplateModal, setShowTemplateModal] = useState(false);
-  const [showFullPreview, setShowFullPreview] = useState(false);
-  const [selectedTemplateCategory, setSelectedTemplateCategory] = useState<string>('');
   const [savedJson, setSavedJson] = useState<string | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [allComponents, setAllComponents] = useState<any[]>([]);
-  
-  // Templates data
-  const getTemplatesForCategory = (category: string) => {
-    const templates = {
-      Hero: [
-        {
-          id: 'hero-center',
-          title: 'Hero Centré',
-          description: 'Titre + Sous-titre + CTA centré',
-          preview: 'https://placehold.co/400x200/4361EE/FFF?text=Hero+Centré',
-          category: 'Hero'
-        },
-        {
-          id: 'hero-image-right',
-          title: 'Hero Image Droite',
-          description: 'Contenu à gauche, image à droite',
-          preview: 'https://placehold.co/400x200/4361EE/FFF?text=Hero+Image+Droite',
-          category: 'Hero'
-        },
-        {
-          id: 'hero-background',
-          title: 'Hero Arrière-plan',
-          description: 'Texte sur image de fond',
-          preview: 'https://placehold.co/400x200/4361EE/FFF?text=Hero+Background',
-          category: 'Hero'
-        }
-      ],
-      Navbar: [
-        {
-          id: 'navbar-simple',
-          title: 'Navigation Simple',
-          description: 'Logo + Menu horizontal',
-          preview: 'https://placehold.co/400x100/4361EE/FFF?text=Navbar+Simple',
-          category: 'Navbar'
-        },
-        {
-          id: 'navbar-cta',
-          title: 'Navigation avec CTA',
-          description: 'Logo + Menu + Bouton',
-          preview: 'https://placehold.co/400x100/4361EE/FFF?text=Navbar+CTA',
-          category: 'Navbar'
-        }
-      ],
-      Footer: [
-        {
-          id: 'footer-simple',
-          title: 'Pied Simple',
-          description: 'Logo + Liens + Copyright',
-          preview: 'https://placehold.co/400x150/4361EE/FFF?text=Footer+Simple',
-          category: 'Footer'
-        },
-        {
-          id: 'footer-multi',
-          title: 'Pied Multi-colonnes',
-          description: 'Plusieurs sections organisées',
-          preview: 'https://placehold.co/400x150/4361EE/FFF?text=Footer+Multi',
-          category: 'Footer'
-        }
-      ],
-      Features: [
-        {
-          id: 'features-grid',
-          title: 'Fonctionnalités Grille',
-          description: 'Icônes + Textes en grille',
-          preview: 'https://placehold.co/400x200/4361EE/FFF?text=Features+Grid',
-          category: 'Features'
-        },
-        {
-          id: 'features-list',
-          title: 'Fonctionnalités Liste',
-          description: 'Liste verticale avec icônes',
-          preview: 'https://placehold.co/400x200/4361EE/FFF?text=Features+List',
-          category: 'Features'
-        }
-      ],
-      Container: [
-        {
-          id: 'container-basic',
-          title: 'Conteneur Basique',
-          description: 'Conteneur simple avec padding',
-          preview: 'https://placehold.co/400x200/4361EE/FFF?text=Container+Basic',
-          category: 'Container'
-        },
-        {
-          id: 'container-card',
-          title: 'Conteneur Carte',
-          description: 'Conteneur avec ombre et coins arrondis',
-          preview: 'https://placehold.co/400x200/4361EE/FFF?text=Container+Card',
-          category: 'Container'
-        }
-      ],
-      GridTwoCols: [
-        {
-          id: 'grid-two-equal',
-          title: 'Grille 50/50',
-          description: 'Deux colonnes égales',
-          preview: 'https://placehold.co/400x200/4361EE/FFF?text=Grid+50-50',
-          category: 'GridTwoCols'
-        },
-        {
-          id: 'grid-two-unequal',
-          title: 'Grille 60/40',
-          description: 'Colonnes inégales',
-          preview: 'https://placehold.co/400x200/4361EE/FFF?text=Grid+60-40',
-          category: 'GridTwoCols'
-        }
-      ],
-      GridThreeCols: [
-        {
-          id: 'grid-three-equal',
-          title: 'Grille Égale',
-          description: 'Trois colonnes égales',
-          preview: 'https://placehold.co/400x200/4361EE/FFF?text=Grid+Equal',
-          category: 'GridThreeCols'
-        }
-      ],
-      Flexbox: [
-        {
-          id: 'flexbox-row',
-          title: 'Flexbox Horizontal',
-          description: 'Éléments alignés horizontalement',
-          preview: 'https://placehold.co/400x200/4361EE/FFF?text=Flex+Row',
-          category: 'Flexbox'
-        },
-        {
-          id: 'flexbox-column',
-          title: 'Flexbox Vertical',
-          description: 'Éléments empilés verticalement',
-          preview: 'https://placehold.co/400x200/4361EE/FFF?text=Flex+Column',
-          category: 'Flexbox'
-        }
-      ]
-    };
-    
-    return templates[category as keyof typeof templates] || [];
-  };
   
   // Use useCallback to prevent unnecessary re-renders
   const handleSave = useCallback((pageData: any) => {
@@ -192,27 +51,6 @@ const BuilderPage = () => {
   const handleComponentsUpdate = useCallback((components: any[]) => {
     setAllComponents(components);
   }, []);
-
-  // Handle template modal opening
-  const handleTemplateModalOpen = useCallback((category: string) => {
-    setSelectedTemplateCategory(category);
-    setShowTemplateModal(true);
-  }, []);
-
-  // Handle template selection
-  const handleTemplateSelect = useCallback((template: any) => {
-    setShowTemplateModal(false);
-    // Dispatch event to add the selected template
-    const event = new CustomEvent('template-selected', {
-      detail: { template }
-    });
-    window.dispatchEvent(event);
-  }, []);
-
-  // Handle full page preview
-  const handleFullPagePreview = useCallback(() => {
-    setShowFullPreview(true);
-  }, []);
   
   return (
     <>
@@ -220,8 +58,6 @@ const BuilderPage = () => {
         onSaveConfirm={handleSave} 
         onMediaLibraryOpen={handleOpenMediaLibrary}
         onComponentsUpdate={handleComponentsUpdate}
-        onTemplateModalOpen={handleTemplateModalOpen}
-        onFullPagePreview={handleFullPagePreview}
       />
       
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
@@ -262,20 +98,6 @@ const BuilderPage = () => {
         onOpenChange={setShowMediaLibrary}
         onSelectImage={handleSelectImage}
         allowMultiple={true} 
-      />
-
-      <TemplateSelectionModal
-        open={showTemplateModal}
-        onOpenChange={setShowTemplateModal}
-        category={selectedTemplateCategory}
-        templates={getTemplatesForCategory(selectedTemplateCategory)}
-        onSelectTemplate={handleTemplateSelect}
-      />
-
-      <FullPagePreview
-        open={showFullPreview}
-        onOpenChange={setShowFullPreview}
-        components={allComponents}
       />
     </>
   );
